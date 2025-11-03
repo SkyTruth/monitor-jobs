@@ -50,7 +50,7 @@ class Tif2Tiles:
                     fields="*",
                     corpora="drive",
                     supportsAllDrives=True,
-                    driveId="0AFogaYeoFEjDUk9PVA",
+                    driveId="",
                     includeItemsFromAllDrives=True,
                 )
                 .execute()
@@ -62,7 +62,7 @@ class Tif2Tiles:
             else:
                 folders = []
                 for item in items:
-                    if item["parents"] == ["0AFogaYeoFEjDUk9PVA"]:
+                    if item["parents"] == [""]:
                         folders.insert(0, [item["id"], item["name"]])
                 # print('folders:', folders)
 
@@ -109,9 +109,7 @@ class Tif2Tiles:
                                     longitude=None,
                                 )
                                 self.download_file(file_id, file_name)
-                                db.upd_file_upload(
-                                    storage_file_path, "downloaded", "downloaded"
-                                )
+                                db.upd_file_upload(storage_file_path, "downloaded", "downloaded")
 
                                 write_tiles_path = "tif_2_tiles/" + storage_bucket
                                 tif_folder_path = (
@@ -156,9 +154,7 @@ class Tif2Tiles:
                                     full_path_to_downloaded_file = (
                                         warp_folder_path + "/" + file_name
                                     )
-                                    coords = self.get_centroid(
-                                        full_path_to_downloaded_file
-                                    )
+                                    coords = self.get_centroid(full_path_to_downloaded_file)
                                     latitude = coords[0]
                                     longitude = coords[1]
                                     print(latitude, longitude, flush=True)
@@ -203,9 +199,7 @@ and happened in the %s function.\n
 TIF files should include georeferencing metadata, have a Web Mercator projection, and be in 8-bit format.
             """ % (file_name, message, status)
         utils.send_email("ERROR in uploaded tif file " + file_name, msg, self.email)
-        utils.send_email(
-            "ERROR in uploaded tif file " + file_name, msg, "tech@skytruth.org"
-        )
+        utils.send_email("ERROR in uploaded tif file " + file_name, msg, "tech@skytruth.org")
         sys.exit(0)
 
     def get_centroid(self, full_path_to_downloaded_file):
@@ -218,15 +212,9 @@ TIF files should include georeferencing metadata, have a Web Mercator projection
         print(dat.bounds, flush=True)
         src_bounds = str(dat.bounds)
         # BoundingBox(left=240848.5, bottom=1672362.0, right=243066.0, top=1673347.0)
-        left = float(
-            src_bounds[src_bounds.index("left=") + 5 : src_bounds.index(", bottom=")]
-        )
-        bottom = float(
-            src_bounds[src_bounds.index("bottom=") + 7 : src_bounds.index(", right=")]
-        )
-        right = float(
-            src_bounds[src_bounds.index("right=") + 6 : src_bounds.index(", top=")]
-        )
+        left = float(src_bounds[src_bounds.index("left=") + 5 : src_bounds.index(", bottom=")])
+        bottom = float(src_bounds[src_bounds.index("bottom=") + 7 : src_bounds.index(", right=")])
+        right = float(src_bounds[src_bounds.index("right=") + 6 : src_bounds.index(", top=")])
         top = float(src_bounds[src_bounds.index("top=") + 4 : src_bounds.index(")")])
         longitude = (left + right) / 2
         latitude = (bottom + top) / 2
@@ -235,9 +223,7 @@ TIF files should include georeferencing metadata, have a Web Mercator projection
         if dat.crs == "EPSG:4326":
             return [latitude, longitude]
         else:
-            print(
-                "attempting to get centroid after converting from", dat.crs, flush=True
-            )
+            print("attempting to get centroid after converting from", dat.crs, flush=True)
             # In GeoJSON format
             # xmin, ymin, xmax, ymax = -180.0225, -90.0225, 179.9775, 90.0225
             feature = {"type": "Point", "coordinates": [longitude, latitude]}
@@ -251,9 +237,7 @@ TIF files should include georeferencing metadata, have a Web Mercator projection
             # print(99, feature_proj, longitude, latitude, flush=True)
             return [latitude, longitude]
 
-    def scale_to_8bits(
-        self, file_name, tif_folder_path, warp_folder_path, storage_bucket
-    ):
+    def scale_to_8bits(self, file_name, tif_folder_path, warp_folder_path, storage_bucket):
         try:
             print("scale_to_8bits:", file_name, tif_folder_path, flush=True)
             # gdal_translate -of VRT -ot Byte -scale tif_files/mlatlon.tif temp.vrt
@@ -262,10 +246,7 @@ TIF files should include georeferencing metadata, have a Web Mercator projection
             # print('input_tif_file:', input_tif_file, 'output_tif_file:', output_tif_file, flush=True)
             # gdal_translate -of VRT -ot Byte -scale tif_files/SkyFi_2422CO03-1_2024-06-04_1639Z_DAY_HIGH_Colorado-USA.tif temp.vrt
             gdalwarp_cmd = (
-                "gdal_translate -of VRT -ot Byte -scale "
-                + input_tif_file
-                + " "
-                + output_tif_file
+                "gdal_translate -of VRT -ot Byte -scale " + input_tif_file + " " + output_tif_file
             )
             os.system(gdalwarp_cmd)
         except Exception as e:
@@ -303,9 +284,7 @@ TIF files should include georeferencing metadata, have a Web Mercator projection
         file_name,
     ):
         try:
-            gcs_path = (
-                "gs://alerts-storage/" + write_tiles_path + "/" + tile_folder_name
-            )
+            gcs_path = "gs://alerts-storage/" + write_tiles_path + "/" + tile_folder_name
             # print("upload_tiles_to_storage", tile_folder_name, gcs_path, flush=True)
             print(
                 "gsutil",
@@ -330,9 +309,7 @@ TIF files should include georeferencing metadata, have a Web Mercator projection
             proc.kill()
             # outs, errs = proc.communicate()
         except Exception as e:
-            self.error(
-                storage_bucket + "/" + file_name, "upload_tiles_to_storage", str(e)
-            )
+            self.error(storage_bucket + "/" + file_name, "upload_tiles_to_storage", str(e))
 
 
 # /* ======================================================================= */#
