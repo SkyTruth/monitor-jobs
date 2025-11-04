@@ -1,0 +1,35 @@
+substitutions:
+  _REGION: us-east1
+  _REPO: monitor-jobs
+  _IMAGE_NAME: main
+  _TAG: latest
+  _TIMEOUT: 900s
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+steps:
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
+        IMAGE="us-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:${_TAG}"
+
+        if gcloud run jobs describe scrape-a --region "${_REGION}" >/dev/null 2>&1; then
+          echo "Updating job scrape-a"
+          gcloud run jobs update scrape-a \
+            --image "${IMAGE}" \
+            --region "${_REGION}" \
+            --task-timeout="${_TIMEOUT}" \
+            --command python \
+            --args -m,jobs.scrape_a
+        else
+          echo "Creating job scrape-a"
+          gcloud run jobs create scrape-a \
+            --image "${IMAGE}" \
+            --region "${_REGION}" \
+            --task-timeout="${_TIMEOUT}" \
+            --command python \
+            --args -m,jobs.scrape_a
+        fi

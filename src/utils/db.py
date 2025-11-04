@@ -1,8 +1,10 @@
 import os
+from datetime import datetime
 from stat import *
+
 import config
 import psycopg2
-from datetime import datetime
+
 import utils
 
 os.environ["PL_API_KEY"] = config.PL_API_KEY
@@ -53,9 +55,7 @@ def getNewAlertsForEmails(l, d, n, alerts2_last_published, aoiid, regionid, emai
                     + " AND fe.lng<="
                     + bb[3]
                 )
-        sql = (
-            select + where + " ORDER BY fe.incident_datetime DESC" + " LIMIT " + str(n)
-        )
+        sql = select + where + " ORDER BY fe.incident_datetime DESC" + " LIMIT " + str(n)
         # print('')
         # print('email:', email)
         # print('sql:', sql)
@@ -225,9 +225,7 @@ def upd_issuesubscription_last_email_sent(is_id, last_published):
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
         print(str(error))
-        utils.email_error(
-            "error on upd_issuesubscription_last_email_sent:" + str(error)
-        )
+        utils.email_error("error on upd_issuesubscription_last_email_sent:" + str(error))
     finally:
         if conn is not None:
             conn.close()
@@ -260,9 +258,7 @@ def get_file_upload(storage_file_path):
     try:
         conn = psycopg2.connect(config.ALERTS2_CONNECTION_STRING)
         cur = conn.cursor()
-        sql = """SELECT * FROM file_uploads WHERE storage_file_path='%s' """ % (
-            storage_file_path
-        )
+        sql = """SELECT * FROM file_uploads WHERE storage_file_path='%s' """ % (storage_file_path)
         # print('sql:', sql)
         cur.execute(sql)
         file_upload = cur.fetchone()
@@ -301,12 +297,7 @@ def upd_file_upload(storage_file_path, status, message, latitude=None, longitude
     try:
         conn = psycopg2.connect(config.ALERTS2_CONNECTION_STRING)
         cur = conn.cursor()
-        if (
-            latitude != None
-            and latitude != "NULL"
-            and longitude != None
-            and longitude != "NULL"
-        ):
+        if latitude != None and latitude != "NULL" and longitude != None and longitude != "NULL":
             sql = """UPDATE file_uploads SET status=%s, message=%s, latitude=%s, longitude=%s WHERE storage_file_path=%s"""
             cur.execute(sql, (status, message, latitude, longitude, storage_file_path))
         else:

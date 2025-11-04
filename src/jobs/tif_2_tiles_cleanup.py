@@ -1,6 +1,6 @@
+import glob
 import os
 import sys
-import glob
 from pathlib import Path
 
 my_file = Path("/path/to/file")
