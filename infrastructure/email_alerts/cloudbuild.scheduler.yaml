@@ -5,7 +5,6 @@ substitutions:
   _SCHEDULER_NAME: run-email-alerts
   _REGION: us-east1
   _CRON: "0 * * * *"        # run hourly
-  _INVOKER_SA: scheduler-invoker@${PROJECT_ID}.iam.gserviceaccount.com
 
 options:
   logging: CLOUD_LOGGING_ONLY
@@ -18,26 +17,30 @@ steps:
       - |
         set -o pipefail
 
+        ## Declare the invoker SA
+        INVOKER_SA: scheduler-invoker@${PROJECT_ID}.iam.gserviceaccount.com
+
+        ## Ensure the invoker SA exists (optional but handy)
+        #
+        gcloud iam service-accounts describe "$${INVOKER_SA}" >/dev/null 2>&1 || \
+          gcloud iam service-accounts create "$(echo "$${INVOKER_SA}" | cut -d@ -f1)" \
+            --display-name="Scheduler Invoker"
+        
         ## let the Cloud Scheduler service agent mint tokens for the invoker SA
         #
         PROJECT_NUM="$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')"
         SCHED_AGENT="service-$${PROJECT_NUM}@gcp-sa-cloudscheduler.iam.gserviceaccount.com"
-        gcloud iam service-accounts add-iam-policy-binding "${_INVOKER_SA}" \
+        gcloud iam service-accounts add-iam-policy-binding "$${INVOKER_SA}" \
           --member="serviceAccount:$${SCHED_AGENT}" \
           --role="roles/iam.serviceAccountTokenCreator" || true
 
-        ## Ensure the invoker SA exists (optional but handy)
-        #
-        gcloud iam service-accounts describe "${_INVOKER_SA}" >/dev/null 2>&1 || \
-          gcloud iam service-accounts create "$(echo "${_INVOKER_SA}" | cut -d@ -f1)" \
-            --display-name="Scheduler Invoker"
 
         ## Bind least privilege on the specific Job being scheduled
         #
         ROLE="roles/run.jobsExecutor"   # or roles/run.invoker
         gcloud run jobs add-iam-policy-binding "${_JOB_NAME}" \
           --region "${_REGION}" \
-          --member="serviceAccount:${_INVOKER_SA}" \
+          --member="serviceAccount:$${INVOKER_SA}" \
           --role="$${ROLE}"
 
         ## Resolve the execution URI and set audience to the same URI
@@ -53,7 +56,7 @@ steps:
             --schedule "${_CRON}" \
             --uri "$${EXEC_URI}" \
             --http-method POST \
-            --oidc-service-account-email "${_INVOKER_SA}" \
+            --oidc-service-account-email "$${INVOKER_SA}" \
             --oidc-token-audience "$${EXEC_URI}"
         else
           echo "Creating scheduler ${_SCHEDULER_NAME}"
@@ -62,6 +65,6 @@ steps:
             --schedule "${_CRON}" \
             --uri "$${EXEC_URI}" \
             --http-method POST \
-            --oidc-service-account-email "${_INVOKER_SA}" \
+            --oidc-service-account-email "$${INVOKER_SA}" \
             --oidc-token-audience "$${EXEC_URI}"
         fi
