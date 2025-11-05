@@ -32,9 +32,10 @@ jobs:
       - name: Submit Cloud Build
         run: |
           gcloud builds submit \
-            --config infrastructure.cloudbuil.image.yaml \
+            --config ./infrastructure.cloudbuild.image.yaml \
 
   deploy-email-alerts:
+    needs: build-and-push-docker
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -58,9 +59,10 @@ jobs:
       - name: Submit Cloud Build
         run: |
           gcloud builds submit \
-            --config infrastructure.email_alerts.cloudbuild.job.email_alerts.yaml \
+            --config ./infrastructure.email_alerts.cloudbuild.job.email_alerts.yaml \
   
   deploy-email-alerts-scheduler:
+    needs: [build-and-push-docker, deploy-email-alerts]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -83,4 +85,4 @@ jobs:
       - name: Submit Cloud Build
         run: |
           gcloud builds submit \
-            --config infrastructure.email_alerts.cloudbuild.scheduler.email_alerts.yaml \
+            --config ./infrastructure.email_alerts.cloudbuild.scheduler.email_alerts.yaml \
