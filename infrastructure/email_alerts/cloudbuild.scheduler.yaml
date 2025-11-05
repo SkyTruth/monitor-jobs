@@ -54,13 +54,13 @@ steps:
             --uri "$${EXEC_URI}" \
             --http-method POST \
             --oidc-service-account-email "${_INVOKER_SA}" \
-            --oidc-token-audience "${EXEC_URI}"
+            --oidc-token-audience "$${EXEC_URI}"
         else
           echo "Creating scheduler ${_SCHEDULER_NAME}"
           gcloud scheduler jobs create http "${_SCHEDULER_NAME}" \
             --location "${_REGION}" \
             --schedule "${_CRON}" \
-            --uri "${EXEC_URI}" \
+            --uri "$${EXEC_URI}" \
             --http-method POST \
             --oidc-service-account-email "${_INVOKER_SA}" \
             --oidc-token-audience "$${EXEC_URI}"
