@@ -18,7 +18,7 @@ steps:
     args:
       - -ceu
       - |
-        IMAGE="us-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:${_TAG}"
+        IMAGE="us-east1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:${_TAG}"
 
         if gcloud run jobs describe "${_JOB_NAME}" --region "${_REGION}" >/dev/null 2>&1; then
           echo "Updating job ${_JOB_NAME}"
@@ -27,7 +27,7 @@ steps:
             --region "${_REGION}" \
             --task-timeout="${_TIMEOUT}" \
             --command python \
-            --args -m,src/jobs/"${__TEMP}"
+            --args -m,src/jobs/"${_TEMP}"
         else
           echo "Creating job ${_JOB_NAME}"
           gcloud run jobs create "${_JOB_NAME}" \
