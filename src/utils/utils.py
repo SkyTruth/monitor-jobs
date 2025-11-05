@@ -72,3 +72,64 @@ def email_error(error_msg):
         print("successfully sent the mail")
     except:
         print("failed to send mail")
+
+
+def error_condition(program, error, exc_info):
+    exc_type, exc_obj, exc_tb = exc_info
+    fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+    print(error, exc_type, fname, exc_tb.tb_lineno)
+    send_email(
+        program + " exception",
+        str(error)
+        + ":"
+        + str(exc_type)
+        + ":"
+        + str(fname)
+        + ":"
+        + str(exc_tb.tb_lineno),
+    )
+
+
+def convert_well_class(well_class):
+    # http://pipeline.wyo.gov/codes.html
+    # O    =  Oil Well
+    # G    =  Gas Well
+    # C    =  Condensate
+    # I      =  Injector Well
+    # S    =  Source Well
+    # D  = Disposal
+    # M  = Monitor Well
+    Well_Class = well_class
+    if well_class == "O":
+        Well_Class = "Oil"
+    if well_class == "G":
+        Well_Class == "Gas"
+    if well_class == "C":
+        Well_Class = "Condensate"
+    if well_class == "I":
+        Well_Class = "Injector Well"
+    if well_class == "D":
+        Well_Class = "Disposal"
+    if well_class == "S":
+        Well_Class = "Source Well"
+    if well_class == "M":
+        Well_Class = "Monitor Well"
+    return Well_Class
+
+
+def convert_status(status):
+    # http://pipeline.wyo.gov/codes.html
+    Status = status
+    if status == "AP":
+        Status = "Active Permit"
+    if status == "EP":
+        Status = "Expired Permit"
+    if status == "DP":
+        Status = "Drilling or Drilled Permit"
+    if status == "NO":
+        Status = "Denied or Cancelled"
+    if status == "WP":
+        Status = "Waiting on Approval"
+    if status == "WD":
+        Status = "Withdrawn"
+    return Status
