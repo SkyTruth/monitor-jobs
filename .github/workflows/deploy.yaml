@@ -22,7 +22,7 @@ jobs:
         with:
           project_id: skytruth-alerts2
           workload_identity_provider: "projects/33114313460/locations/global/workloadIdentityPools/github-pool/providers/github-actions"
-          # service_account: "github-deployer@your-project.iam.gserviceaccount.com"
+          service_account: "github-deployer@your-project.iam.gserviceaccount.com"
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
@@ -48,7 +48,7 @@ jobs:
         with:
           project_id: skytruth-alerts2
           workload_identity_provider: "projects/33114313460/locations/global/workloadIdentityPools/github-pool/providers/github-actions"
-          # service_account: "github-deployer@your-project.iam.gserviceaccount.com"
+          service_account: "github-deployer@your-project.iam.gserviceaccount.com"
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
@@ -75,7 +75,7 @@ jobs:
         with:
           project_id: skytruth-alerts2
           workload_identity_provider: "projects/33114313460/locations/global/workloadIdentityPools/github-pool/providers/github-actions"
-          # service_account: "github-deployer@your-project.iam.gserviceaccount.com"
+          service_account: "github-deployer@your-project.iam.gserviceaccount.com"
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
