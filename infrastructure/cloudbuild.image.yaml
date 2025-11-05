@@ -2,6 +2,7 @@
 
 substitutions:
   _REPO: monitor-jobs
+  _REGION: us-east1
   _IMAGE_NAME: jobs
   _COMMIT_SHA: "$SHORT_SHA"
 
@@ -14,23 +15,23 @@ steps:
     args:
       - "build"
       - "-t"
-      - "us-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:${_COMMIT_SHA}"
+      - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:${_COMMIT_SHA}"
       - "-t"
-      - "us-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:latest"
+      - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:latest"
       - "."
 
   - name: gcr.io/cloud-builders/docker
     id: "Push"
     args:
       - "push"
-      - "us-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:${_COMMIT_SHA}"
+      - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:${_COMMIT_SHA}"
 
   - name: gcr.io/cloud-builders/docker
     id: "Push latest"
     args:
       - "push"
-      - "us-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:latest"
+      - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:latest"
 
 images:
-  - "us-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:${_COMMIT_SHA}"
-  - "us-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:latest"
+  - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:${_COMMIT_SHA}"
+  - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:latest"
