@@ -4,7 +4,7 @@ substitutions:
   _JOB_NAME: email_alerts
   _TEMP: test
   _REGION: us-east1
-  _REPO: scheduled
+  _REPO: monitor-jobs
   _IMAGE_NAME: jobs
   _TAG: latest
   _TIMEOUT: 900s
