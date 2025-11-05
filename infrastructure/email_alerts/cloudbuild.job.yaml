@@ -4,11 +4,8 @@ substitutions:
   _JOB_NAME: email_alerts
   _TEMP: test
   _REGION: us-east1
-  _REPO: monitor-jobs
-  _IMAGE_NAME: jobs
-  _TAG: latest
   _TIMEOUT: 900s
-  _IMAGE: "us-east1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:${_TAG}"
+  _IMAGE: "us-east1-docker.pkg.dev/$PROJECT_ID/monitor-jobs/jobs:latest"
 
 options:
   logging: CLOUD_LOGGING_ONLY
