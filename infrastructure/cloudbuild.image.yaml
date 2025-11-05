@@ -8,7 +8,7 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 steps:
-  - name: Build Docker Image
+  - name: gcr.io/cloud-builders/docker
     id: "Build"
     args:
       - "build"
@@ -18,13 +18,13 @@ steps:
       - "us-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:latest"
       - "."
 
-  - name: Push Docker - tag SHA
+  - name: gcr.io/cloud-builders/docker
     id: "Push"
     args:
       - "push"
       - "us-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:$COMMIT_SHA"
 
-  - name: Push Docker - tag latest
+  - name: gcr.io/cloud-builders/docker
     id: "Push latest"
     args:
       - "push"
