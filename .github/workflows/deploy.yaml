@@ -9,6 +9,30 @@ on:
       - main
 
 jobs:
+  build-and-push-docker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: "projects/33114313460/locations/global/workloadIdentityPools/github-pool/providers/github-actions"
+          service_account: "github-deployer@your-project.iam.gserviceaccount.com"
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: your-project-id
+
+      - name: Submit Cloud Build
+        run: |
+          gcloud builds submit \
+            --config infrastructure.cloudbuil.image.yaml \
+
   deploy-email-alerts:
     runs-on: ubuntu-latest
     permissions:
@@ -20,7 +44,7 @@ jobs:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: "projects/33114313460/locations/global/workloadIdentityPools/github-pool/providers/github"
+          workload_identity_provider: "projects/33114313460/locations/global/workloadIdentityPools/github-pool/providers/github-actions"
           service_account: "github-deployer@your-project.iam.gserviceaccount.com"
 
       - name: Set up Cloud SDK
@@ -31,7 +55,7 @@ jobs:
       - name: Submit Cloud Build
         run: |
           gcloud builds submit \
-            --config infrastructure.email_alerts.job.email_alerts.yaml \
+            --config infrastructure.email_alerts.cloudbuild.job.email_alerts.yaml \
   
   deploy-email-alerts-scheduler:
     runs-on: ubuntu-latest
@@ -44,7 +68,7 @@ jobs:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: "projects/33114313460/locations/global/workloadIdentityPools/github-pool/providers/github"
+          workload_identity_provider: "projects/33114313460/locations/global/workloadIdentityPools/github-pool/providers/github-actions"
           service_account: "github-deployer@your-project.iam.gserviceaccount.com"
 
       - name: Set up Cloud SDK
@@ -55,4 +79,4 @@ jobs:
       - name: Submit Cloud Build
         run: |
           gcloud builds submit \
-            --config infrastructure.email_alerts.scheduler.email_alerts.yaml \
+            --config infrastructure.email_alerts.cloudbuild.scheduler.email_alerts.yaml \
