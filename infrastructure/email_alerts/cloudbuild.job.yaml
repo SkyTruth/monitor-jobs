@@ -18,6 +18,8 @@ steps:
     args:
       - -ceu
       - |
+        set -o pipefail
+        
         IMAGE="us-east1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:${_TAG}"
 
         if gcloud run jobs describe "${_JOB_NAME}" --region "${_REGION}" >/dev/null 2>&1; then

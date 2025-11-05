@@ -18,7 +18,7 @@ steps:
         set -o pipefail
 
         ## Declare the invoker SA
-        INVOKER_SA: scheduler-invoker@${PROJECT_ID}.iam.gserviceaccount.com
+        INVOKER_SA="scheduler-invoker@${PROJECT_ID}.iam.gserviceaccount.com"
 
         ## Ensure the invoker SA exists (optional but handy)
         #
