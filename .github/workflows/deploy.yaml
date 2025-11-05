@@ -21,12 +21,12 @@ jobs:
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: "projects/33114313460/locations/global/workloadIdentityPools/github-pool/providers/github-actions"
-          service_account: "github-deployer@your-project.iam.gserviceaccount.com"
+          # service_account: "github-deployer@your-project.iam.gserviceaccount.com"
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
-          project_id: your-project-id
+          project_id: 33114313460
 
       - name: Submit Cloud Build
         run: |
@@ -45,12 +45,12 @@ jobs:
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: "projects/33114313460/locations/global/workloadIdentityPools/github-pool/providers/github-actions"
-          service_account: "github-deployer@your-project.iam.gserviceaccount.com"
+          # service_account: "github-deployer@your-project.iam.gserviceaccount.com"
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
-          project_id: your-project-id
+          project_id: 33114313460
 
       - name: Submit Cloud Build
         run: |
@@ -69,12 +69,12 @@ jobs:
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: "projects/33114313460/locations/global/workloadIdentityPools/github-pool/providers/github-actions"
-          service_account: "github-deployer@your-project.iam.gserviceaccount.com"
+          # service_account: "github-deployer@your-project.iam.gserviceaccount.com"
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
-          project_id: your-project-id
+          project_id: 33114313460
 
       - name: Submit Cloud Build
         run: |
