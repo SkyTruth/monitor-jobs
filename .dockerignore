@@ -1,3 +1,6 @@
 __pycache__
 .git
 .pre-commit-config.yaml
+
+#GH actions auth artifacts
+gha-creds-*.json

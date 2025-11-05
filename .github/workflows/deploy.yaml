@@ -18,15 +18,16 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
+          project_id: 33114313460
           workload_identity_provider: "projects/33114313460/locations/global/workloadIdentityPools/github-pool/providers/github-actions"
           # service_account: "github-deployer@your-project.iam.gserviceaccount.com"
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
-          project_id: 33114313460
+          project_id: skytruth-alerts2
 
       - name: Submit Cloud Build
         run: |
@@ -42,15 +43,17 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
+          project_id: 33114313460
           workload_identity_provider: "projects/33114313460/locations/global/workloadIdentityPools/github-pool/providers/github-actions"
           # service_account: "github-deployer@your-project.iam.gserviceaccount.com"
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
-          project_id: 33114313460
+          version: '>= 516.0.0'
+          project_id: skytruth-alerts2
 
       - name: Submit Cloud Build
         run: |
@@ -66,15 +69,16 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
+          project_id: 33114313460
           workload_identity_provider: "projects/33114313460/locations/global/workloadIdentityPools/github-pool/providers/github-actions"
           # service_account: "github-deployer@your-project.iam.gserviceaccount.com"
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
-          project_id: 33114313460
+          project_id: skytruth-alerts2
 
       - name: Submit Cloud Build
         run: |
