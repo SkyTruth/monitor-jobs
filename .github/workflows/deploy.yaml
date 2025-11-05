@@ -61,7 +61,7 @@ jobs:
       - name: Submit Cloud Build
         run: |
           gcloud builds submit \
-            --config ./infrastructure/email_alerts/cloudbuild.job.email_alerts.yaml \
+            --config ./infrastructure/email_alerts/cloudbuild.job.yaml \
   
   deploy-email-alerts-scheduler:
     needs: [build-and-push-docker, deploy-email-alerts]
@@ -87,4 +87,4 @@ jobs:
       - name: Submit Cloud Build
         run: |
           gcloud builds submit \
-            --config ./infrastructure/email_alerts/cloudbuild.scheduler.email_alerts.yaml \
+            --config ./infrastructure/email_alerts/cloudbuild.scheduler.yaml \
