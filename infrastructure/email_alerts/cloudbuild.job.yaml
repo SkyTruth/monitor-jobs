@@ -1,8 +1,8 @@
 # Deploy/Update Cloud Run Job: email_alerts
 
 substitutions:
-  _JOB_NAME: email_alerts
-  _TEMP: test
+  _JOB_NAME: email-alerts
+  _FILE: test
   _REGION: us-east1
   _REPO: monitor-jobs
   _IMAGE_NAME: jobs
@@ -27,7 +27,7 @@ steps:
             --region "${_REGION}" \
             --task-timeout="${_TIMEOUT}" \
             --command python \
-            --args="-m,src.jobs.${_TEMP}"
+            --args="-m,src.jobs.${_FILE}"
         else
           echo "Creating job ${_JOB_NAME}"
           gcloud run jobs create "${_JOB_NAME}" \
@@ -35,5 +35,5 @@ steps:
             --region "${_REGION}" \
             --task-timeout="${_TIMEOUT}" \
             --command python \
-            --args="-m,src.jobs.${_TEMP}"
+            --args="-m,src.jobs.${_FILE}"
         fi

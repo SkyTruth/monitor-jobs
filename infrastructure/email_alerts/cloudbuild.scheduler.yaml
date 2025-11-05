@@ -1,8 +1,8 @@
 # Deploy/Update Scheduler for Job: email_alerts
 
 substitutions:
-  _JOB_NAME: email_alerts
-  _SCHEDULER_NAME: run_email_alerts
+  _JOB_NAME: email-alerts
+  _SCHEDULER_NAME: run-email-alerts
   _REGION: us-east1
   _CRON: "0 * * * *"        # run hourly
   _INVOKER_SA: scheduler-invoker@${PROJECT_ID}.iam.gserviceaccount.com
