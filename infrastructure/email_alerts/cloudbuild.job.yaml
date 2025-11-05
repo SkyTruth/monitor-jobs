@@ -8,6 +8,7 @@ substitutions:
   _IMAGE_NAME: jobs
   _TAG: latest
   _TIMEOUT: 900s
+  _IMAGE: "us-east1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:${_TAG}"
 
 options:
   logging: CLOUD_LOGGING_ONLY
@@ -18,12 +19,10 @@ steps:
     args:
       - -ceu
       - |
-        IMAGE="us-east1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:${_TAG}"
-
         if gcloud run jobs describe "${_JOB_NAME}" --region "${_REGION}" >/dev/null 2>&1; then
           echo "Updating job ${_JOB_NAME}"
           gcloud run jobs update "${_JOB_NAME}" \
-            --image "${IMAGE}" \
+            --image "${_IMAGE}" \
             --region "${_REGION}" \
             --task-timeout="${_TIMEOUT}" \
             --command python \
@@ -31,7 +30,7 @@ steps:
         else
           echo "Creating job ${_JOB_NAME}"
           gcloud run jobs create "${_JOB_NAME}" \
-            --image "${IMAGE}" \
+            --image "${_IMAGE}" \
             --region "${_REGION}" \
             --task-timeout="${_TIMEOUT}" \
             --command python \
