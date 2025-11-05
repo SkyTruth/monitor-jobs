@@ -4,7 +4,6 @@ substitutions:
   _JOB_NAME: email_alerts
   _SCHEDULER_NAME: run_email_alerts
   _REGION: us-east1
-  _SCHED_REGION: us-east1
   _CRON: "0 * * * *"        # run hourly
 
 options:
@@ -19,10 +18,10 @@ steps:
         SA="$PROJECT_ID@appspot.gserviceaccount.com"
         EXEC_URI=$(gcloud run jobs describe "${_JOB_NAME}" --region "${_REGION}" --format='value(status.executionUri)')
 
-        if gcloud scheduler jobs describe run-"${_SCHEDULER_NAME}" --location "${_SCHED_REGION}" >/dev/null 2>&1; then
+        if gcloud scheduler jobs describe run-"${_SCHEDULER_NAME}" --location "${_REGION}" >/dev/null 2>&1; then
           echo "Updating scheduler run-${_SCHEDULER_NAME}"
           gcloud scheduler jobs update http "${_SCHEDULER_NAME}" \
-            --location "${_SCHED_REGION}" \
+            --location "${_REGION}" \
             --schedule "${_CRON}" \
             --uri "${EXEC_URI}" \
             --http-method POST \
@@ -30,7 +29,7 @@ steps:
         else
           echo "Creating scheduler ${_SCHEDULER_NAME}"
           gcloud scheduler jobs create http "${_SCHEDULER_NAME}" \
-            --location "${_SCHED_REGION}" \
+            --location "${_REGION}" \
             --schedule "${_CRON}" \
             --uri "${EXEC_URI}" \
             --http-method POST \

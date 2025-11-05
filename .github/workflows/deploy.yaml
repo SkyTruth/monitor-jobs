@@ -31,8 +31,10 @@ jobs:
 
       - name: Submit Cloud Build
         run: |
+          SHORT_SHA=${GITHUB_SHA::7}
           gcloud builds submit \
             --config ./infrastructure/cloudbuild.image.yaml \
+            --substitutions=COMMIT_SHA=$SHORT_SHA
 
   deploy-email-alerts:
     needs: build-and-push-docker
