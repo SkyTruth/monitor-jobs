@@ -37,7 +37,7 @@ jobs:
   #           --substitutions=_COMMIT_SHA=$SHORT_SHA
 
   deploy-email-alerts:
-    needs: build-and-push-docker
+    # needs: build-and-push-docker
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -64,7 +64,8 @@ jobs:
             --config ./infrastructure/email_alerts/cloudbuild.job.yaml \
   
   deploy-email-alerts-scheduler:
-    needs: [build-and-push-docker, deploy-email-alerts]
+    # needs: [build-and-push-docker, deploy-email-alerts]
+    needs: deploy-email-alerts
     runs-on: ubuntu-latest
     permissions:
       contents: read
