@@ -21,9 +21,9 @@ steps:
         ## let the Cloud Scheduler service agent mint tokens for the invoker SA
         #
         PROJECT_NUM="$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')"
-        SCHED_AGENT="service-${PROJECT_NUM}@gcp-sa-cloudscheduler.iam.gserviceaccount.com"
+        SCHED_AGENT="service-$${PROJECT_NUM}@gcp-sa-cloudscheduler.iam.gserviceaccount.com"
         gcloud iam service-accounts add-iam-policy-binding "${_INVOKER_SA}" \
-          --member="serviceAccount:${SCHED_AGENT}" \
+          --member="serviceAccount:$${SCHED_AGENT}" \
           --role="roles/iam.serviceAccountTokenCreator" || true
 
         ## Ensure the invoker SA exists (optional but handy)
@@ -38,7 +38,7 @@ steps:
         gcloud run jobs add-iam-policy-binding "${_JOB_NAME}" \
           --region "${_REGION}" \
           --member="serviceAccount:${_INVOKER_SA}" \
-          --role="${ROLE}"
+          --role="$${ROLE}"
 
         ## Resolve the execution URI and set audience to the same URI
         #
@@ -51,7 +51,7 @@ steps:
           gcloud scheduler jobs update http "${_SCHEDULER_NAME}" \
             --location "${_REGION}" \
             --schedule "${_CRON}" \
-            --uri "${EXEC_URI}" \
+            --uri "$${EXEC_URI}" \
             --http-method POST \
             --oidc-service-account-email "${_INVOKER_SA}" \
             --oidc-token-audience "${EXEC_URI}"
@@ -63,5 +63,5 @@ steps:
             --uri "${EXEC_URI}" \
             --http-method POST \
             --oidc-service-account-email "${_INVOKER_SA}" \
-            --oidc-token-audience "${EXEC_URI}"
+            --oidc-token-audience "$${EXEC_URI}"
         fi
