@@ -51,6 +51,6 @@ jobs:
 
       - name: Submit Cloud Build (Cloud Run Job)
         run: |
-          gcloud builds submit \
+          gcloud builds submit .\
             --config "${{ inputs.cb_runjob_path }}" \
             --substitutions=_JOB_NAME="${{ inputs.job_name }}",_JOB_PATH="${{ inputs.job_path }}",_CPU="${{ inputs.cpu }}",_MEMORY="${{ inputs.memory }}",_TIMEOUT="${{ inputs.timeout }}"
