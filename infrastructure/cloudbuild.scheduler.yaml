@@ -16,7 +16,7 @@ steps:
     args:
       - -ceu
       - |
-        echo "build ${_SCHEDULER_NAME} ${_SCHEDULE}"
+
         ## Declare the invoker SA
         #
         INVOKER_SA="scheduler-invoker@${PROJECT_ID}.iam.gserviceaccount.com"

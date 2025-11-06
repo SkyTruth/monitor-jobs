@@ -22,9 +22,7 @@ steps:
       - -ceu
       - |
         set -o pipefail
-        echo "DEBUG _JOB_NAME='${_JOB_NAME}'"
-        echo "DEBUG _JOB_PATH='${_JOB_PATH}'" 
-
+        
         IMAGE="us-east1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:${_TAG}"
 
         if gcloud run jobs describe "${_JOB_NAME}" --region "${_REGION}" >/dev/null 2>&1; then
