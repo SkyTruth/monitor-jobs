@@ -36,12 +36,12 @@ jobs:
   #           --config ./infrastructure/cloudbuild.image.yaml \
   #           --substitutions=_COMMIT_SHA=$SHORT_SHA
 
-  # deploy-email-alerts:
-  #   needs: build-and-push-docker
-  #   uses: ./.github/workflows/deploy-job.yaml
-  #   with:
-  #     job_name: email-alerts
-  #     job_path: src.jobs.email_alerts
+  deploy-email-alerts:
+    # needs: build-and-push-docker
+    uses: ./.github/workflows/deploy-job.yaml
+    with:
+      job_name: email-alerts
+      job_path: src.jobs.test
 
   
   deploy-email-alerts-scheduler:
