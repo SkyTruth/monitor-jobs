@@ -15,6 +15,18 @@ steps:
     args:
       - -ceu
       - |
+
+        echo "Auth account:"
+        gcloud auth list
+        echo "Project:"
+        gcloud config get-value project
+        echo "Existing bindings for Cloud Build SA:"
+        PROJECT_NUM="$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')"
+        CB_SA="${PROJECT_NUM}@cloudbuild.gserviceaccount.com"
+        gcloud projects get-iam-policy "$PROJECT_ID" \
+          --flatten="bindings[].members" \
+          --filter="bindings.members:serviceAccount:${CB_SA}" \
+          --format="table(bindings.role)"
         set -o pipefail
 
         ## Declare the invoker SA
