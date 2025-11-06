@@ -87,9 +87,7 @@ class FlPollution:
                         # print(str(SWO_Incident_Number), latitude, longitude, flush=True)
                         try:
                             if (
-                                self.db.getSourceItemIdCount(
-                                    self.source_id, SWO_Incident_Number
-                                )
+                                self.db.getSourceItemIdCount(self.source_id, SWO_Incident_Number)
                                 > 0
                             ):
                                 # print(str(SWO_Incident_Number), 'already on file')
@@ -162,23 +160,24 @@ class FlPollution:
                                 response = requests.post(url, data=post_fields)
                                 print(response.content)
                         except Exception as e:
-                            utils.error_condition("FL pollution", e, sys.exc_info())
+                            print("Error processing incident:", e)
+                            # utils.error_condition("FL pollution", e, sys.exc_info())
 
         after_count = self.db.get_feedentry_count(self.source_id)["count"]
         print("before:", before_count)
         print("after:", after_count)
         print("total added:", (before_count - after_count))
-        utils.send_email(
-            "FL Pollution finished (" + str(after_count - before_count) + ")",
-            (
-                "FL Pollution:"
-                + str(before_count)
-                + " after:"
-                + str(after_count)
-                + " added:"
-                + str(after_count - before_count)
-            ),
-        )
+        # utils.send_email(
+        #     "FL Pollution finished (" + str(after_count - before_count) + ")",
+        #     (
+        #         "FL Pollution:"
+        #         + str(before_count)
+        #         + " after:"
+        #         + str(after_count)
+        #         + " added:"
+        #         + str(after_count - before_count)
+        #     ),
+        # )
 
     # /* ======================================================================= */#
     # /*     Define name_current_file() function

@@ -48,9 +48,7 @@ class PAPermits:
     def main(self, args):
         try:
             for num, source_id in enumerate(self.source_ids, start=0):
-                self.before_counts[num] = self.db.get_feedentry_count(source_id)[
-                    "count"
-                ]
+                self.before_counts[num] = self.db.get_feedentry_count(source_id)["count"]
 
             try:
                 display = Display(visible=0, size=(800, 600))
@@ -64,26 +62,18 @@ class PAPermits:
                     "http://cedatareporting.pa.gov/Reportserver/Pages/ReportViewer.aspx?/Public/DEP/OG/SSRS/Spud_External_Data"
                 )
                 print("dates:", self.start_date_string, self.today_string)
-                from_date = driver.find_element_by_name(
-                    "ReportViewerControl$ctl04$ctl03$txtValue"
-                )
+                from_date = driver.find_element_by_name("ReportViewerControl$ctl04$ctl03$txtValue")
                 driver.execute_script(
-                    "arguments[0].setAttribute('value', '"
-                    + self.start_date_string
-                    + "')",
+                    "arguments[0].setAttribute('value', '" + self.start_date_string + "')",
                     from_date,
                 )
-                to_date = driver.find_element_by_name(
-                    "ReportViewerControl$ctl04$ctl05$txtValue"
-                )
+                to_date = driver.find_element_by_name("ReportViewerControl$ctl04$ctl05$txtValue")
                 driver.execute_script(
                     "arguments[0].setAttribute('value', '" + self.today_string + "')",
                     to_date,
                 )
                 print("submit")
-                search_form = driver.find_element_by_name(
-                    "ReportViewerControl$ctl04$ctl00"
-                )
+                search_form = driver.find_element_by_name("ReportViewerControl$ctl04$ctl00")
                 search_form.click()
                 # Wait as long as required, or maximum of 30 sec for alert to appear
                 WebDriverWait(driver, 30).until(
@@ -136,7 +126,8 @@ class PAPermits:
                 display.stop()
 
         except Exception as e:
-            utils.error_condition("PA DEP SPUD", e, sys.exc_info())
+            print("Main PA DEP SPUD Exception:", e)
+            # utils.error_condition("PA DEP SPUD", e, sys.exc_info())
 
         # Finish up
         for num, source_id in enumerate(self.source_ids, start=0):
@@ -161,7 +152,7 @@ class PAPermits:
                 + " added  "
             )
         email_subj += ")"
-        utils.send_email(email_subj, email_subj)
+        # utils.send_email(email_subj, email_subj)
 
     # @staticmethod
     def uuid3_str(self, namespace=uuid.NAMESPACE_URL, name=None):
@@ -320,7 +311,8 @@ class PAPermits:
                 rowx += 1
 
         except Exception as e:
-            utils.error_condition("PA DEP SPUD ", e, sys.exc_info())
+            print("Process Page PA DEP SPUD Exception:", e)
+            # utils.error_condition("PA DEP SPUD ", e, sys.exc_info())
 
     def error_condition(error, details, exc_info=None, spill_num=0):
         print(error, details, str(spill_num))
@@ -329,9 +321,7 @@ class PAPermits:
             # exc_type, exc_obj, exc_tb = exc_info()
             # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             # print(exc_type, fname, exc_tb.tb_lineno)
-        utils.send_email(
-            "PA DEP SPUD Scraper " + error, str(spill_num), details, exc_info
-        )
+        # utils.send_email("PA DEP SPUD Scraper " + error, str(spill_num), details, exc_info)
 
 
 # /* ======================================================================= */#

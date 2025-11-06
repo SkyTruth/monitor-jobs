@@ -76,7 +76,7 @@ def getNewAlertsForEmails(l, d, n, alerts2_last_published, aoiid, regionid, emai
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
-        utils.email_error("error on getNewAlertsForEmails:" + error)
+        # utils.email_error("error on getNewAlertsForEmails:" + error)
     finally:
         if conn is not None:
             conn.close()
@@ -142,7 +142,7 @@ def read_subscriptions():
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
-        utils.email_error("error on read_subscriptions:" + error)
+        # utils.email_error("error on read_subscriptions:" + error)
     finally:
         if conn is not None:
             conn.close()
@@ -168,7 +168,7 @@ def read_test_subscriptions(test_email):
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
-        utils.email_error("error on read_test_subscriptions:" + error)
+        # utils.email_error("error on read_test_subscriptions:" + error)
     finally:
         if conn is not None:
             conn.close()
@@ -203,7 +203,7 @@ def upd_rss_last_email_sent(aoiid, last_published):
         print(str(error))
         print("error aoiid:", aoiid, " last_published:", str(last_published))
         print("")
-        utils.email_error("error on upd_rss_last_email_sent:" + str(error))
+        # utils.email_error("error on upd_rss_last_email_sent:" + str(error))
     finally:
         if conn is not None:
             conn.close()
@@ -234,7 +234,7 @@ def upd_issuesubscription_last_email_sent(is_id, last_published):
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
         print(str(error))
-        utils.email_error("error on upd_issuesubscription_last_email_sent:" + str(error))
+        # utils.email_error("error on upd_issuesubscription_last_email_sent:" + str(error))
     finally:
         if conn is not None:
             conn.close()
@@ -253,7 +253,7 @@ def get_next_uploaded_tiff():
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
-        utils.email_error("error on get_last_published:" + error)
+        # utils.email_error("error on get_last_published:" + error)
     finally:
         if conn is not None:
             conn.close()
@@ -274,7 +274,7 @@ def get_file_upload(storage_file_path):
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
-        utils.email_error("error on get_file_upload:" + error)
+        # utils.email_error("error on get_file_upload:" + error)
     finally:
         if conn is not None:
             conn.close()
@@ -293,7 +293,7 @@ def get_next_uploaded_tiff_missing_coords():
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
-        utils.email_error("error on get_last_published:" + error)
+        # utils.email_error("error on get_last_published:" + error)
     finally:
         if conn is not None:
             conn.close()
@@ -316,7 +316,7 @@ def upd_file_upload(storage_file_path, status, message, latitude=None, longitude
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
-        utils.email_error("error on upd_feedentry_tags:" + error)
+        # utils.email_error("error on upd_feedentry_tags:" + error)
     finally:
         if conn is not None:
             conn.close()
@@ -369,7 +369,7 @@ def insert_file_upload(
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
-        utils.email_error("error on insert_file_upload:" + error)
+        # utils.email_error("error on insert_file_upload:" + error)
     finally:
         if conn is not None:
             conn.close()

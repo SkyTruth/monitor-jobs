@@ -126,7 +126,8 @@ class PAPermits:
                 display.stop()
 
         except Exception as e:
-            utils.error_condition("PA DEP Violation", e, sys.exc_info())
+            print("Main PA DEP Violation Exception:", e)
+            # utils.error_condition("PA DEP Violation", e, sys.exc_info())
 
         # Finish up
         for num, source_id in enumerate(self.source_ids, start=0):
@@ -149,7 +150,7 @@ class PAPermits:
                 + " "
             )
         email_subj += ")"
-        utils.send_email(email_subj, email_subj)
+        # utils.send_email(email_subj, email_subj)
 
     # @staticmethod
     def uuid3_str(self, namespace=uuid.NAMESPACE_URL, name=None):
@@ -354,16 +355,14 @@ class PAPermits:
             print(response.content)
 
         except Exception as e:
-            utils.error_condition("PA DEP Violation ", e, sys.exc_info())
+            print("Process Page PA DEP Violation Exception:", e)
+            # utils.error_condition("PA DEP Violation ", e, sys.exc_info())
 
-    def error_condition(error, details, exc_info=None, spill_num=0):
-        print(error, details, str(spill_num))
-        if exc_info:
-            print(exc_info)
-            # exc_type, exc_obj, exc_tb = exc_info()
-            # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            # print(exc_type, fname, exc_tb.tb_lineno)
-        utils.send_email("PA DEP Violation Scraper " + error, str(spill_num), details, exc_info)
+    # def error_condition(error, details, exc_info=None, spill_num=0):
+    #     print(error, details, str(spill_num))
+    #     if exc_info:
+    #         print(exc_info)
+    #     utils.send_email("PA DEP Violation Scraper " + error, str(spill_num), details, exc_info)
 
 
 # /* ======================================================================= */#
