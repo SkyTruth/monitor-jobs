@@ -44,4 +44,4 @@ jobs:
           echo "deploy - '${{ inputs.schedule }}'_SCHEDULER_NAME=${{ inputs.scheduler_name }}'"
           gcloud builds submit \
             --config "${{ inputs.cb_scheduler_path }}" \
-            --substitutions=_SCHEDULE=${{ inputs.schedule }},_SCHEDULER_NAME=${{ inputs.scheduler_name }},_JOB_NAME=${{ inputs.job_name }}
+            --substitutions=_SCHEDULE="${{ inputs.schedule }}",_SCHEDULER_NAME="${{ inputs.scheduler_name }}",_JOB_NAME="${{ inputs.job_name }}"
