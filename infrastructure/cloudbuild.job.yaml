@@ -1,7 +1,7 @@
 # Deploy/Update Cloud Run Job: email_alerts
 
 substitutions:
-  _CPU: 1
+  _CPU: "1"
   _MEMORY: 512Mi
   _JOB_NAME: name
   _JOB_PATH: path
