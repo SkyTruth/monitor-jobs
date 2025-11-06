@@ -6,7 +6,6 @@ from os.path import *
 import uuid
 
 sys.path.insert(0, "../")
-import utils
 from database import NrcDatabase
 
 try:
@@ -127,7 +126,6 @@ class PAPermits:
 
         except Exception as e:
             print("Main PA DEP SPUD Exception:", e)
-            # utils.error_condition("PA DEP SPUD", e, sys.exc_info())
 
         # Finish up
         for num, source_id in enumerate(self.source_ids, start=0):
@@ -152,7 +150,6 @@ class PAPermits:
                 + " added  "
             )
         email_subj += ")"
-        # utils.send_email(email_subj, email_subj)
 
     # @staticmethod
     def uuid3_str(self, namespace=uuid.NAMESPACE_URL, name=None):
@@ -312,16 +309,6 @@ class PAPermits:
 
         except Exception as e:
             print("Process Page PA DEP SPUD Exception:", e)
-            # utils.error_condition("PA DEP SPUD ", e, sys.exc_info())
-
-    def error_condition(error, details, exc_info=None, spill_num=0):
-        print(error, details, str(spill_num))
-        if exc_info:
-            print(exc_info)
-            # exc_type, exc_obj, exc_tb = exc_info()
-            # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            # print(exc_type, fname, exc_tb.tb_lineno)
-        # utils.send_email("PA DEP SPUD Scraper " + error, str(spill_num), details, exc_info)
 
 
 # /* ======================================================================= */#

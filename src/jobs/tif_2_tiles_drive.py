@@ -5,7 +5,6 @@ import subprocess
 
 # import gdal2tiles
 import db
-import utils
 import rasterio
 import rasterio.warp
 from rasterio.crs import CRS
@@ -171,16 +170,6 @@ class Tif2Tiles:
                                     longitude,
                                 )
 
-                                # Email user
-                                # utils.send_email(
-                                #     file_name + " converted to tiles",
-                                #     file_name
-                                #     + " has been converted to tiles. You can view this by selecting "
-                                #     + file_name
-                                #     + " from the 'Uploaded TIFFs' layer in Alerts.",
-                                #     email,
-                                # )
-
                     if count > 0:
                         return
 
@@ -198,8 +187,6 @@ The error received is: %s
 and happened in the %s function.\n
 TIF files should include georeferencing metadata, have a Web Mercator projection, and be in 8-bit format.
             """ % (file_name, message, status)
-        # utils.send_email("ERROR in uploaded tif file " + file_name, msg, self.email)
-        # utils.send_email("ERROR in uploaded tif file " + file_name, msg, "tech@skytruth.org")
         sys.exit(0)
 
     def get_centroid(self, full_path_to_downloaded_file):

@@ -11,7 +11,6 @@ from xml.etree import ElementTree
 import sys
 
 sys.path.insert(0, "../")
-import utils
 from database import NrcDatabase
 
 
@@ -266,7 +265,6 @@ class PAPermitScraper:
 
         except Exception as e:
             print("Exception in parse_xml_properties:", e)
-            # utils.error_condition("PAPermitScraper", e, sys.exc_info())
 
     def process_item(self):
         try:
@@ -300,12 +298,8 @@ class PAPermitScraper:
             print("before:", before_count)
             print("after:", after_count)
             print("total added:", (before_count - after_count))
-            # utils.send_email('PAPermitScraper finished (' + str(after_count - before_count) + ')',
-            #                 ('PAPermit Scraper:' + str(before_count) +
-            #                 ' after:' + str(after_count) + ' added:' + str(after_count - before_count)))
         except Exception as e:
             print("Exception in process_item:", e)
-            # utils.error_condition("PAPermitScraper", e, sys.exc_info())
 
 
 # /* ======================================================================= */#

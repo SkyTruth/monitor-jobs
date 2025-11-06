@@ -55,7 +55,6 @@ import urllib
 import requests
 from items import NrcTag, BotTaskError, FeedEntryTag
 from database import NrcDatabase
-import utils
 from scrapy.loader import ItemLoader
 from scrapy.selector import Selector
 
@@ -651,22 +650,6 @@ def process_field_map(**kwargs):
         )
 
     return value
-
-
-# def error_condition(error, details, task_id=0, exc_info=None):
-#     print("error:", error)
-#     print("details:", details)
-#     if task_id != 0:
-#         print("task_id:", str(task_id))
-#     if exc_info:
-#         exc_type, exc_obj, exc_tb = exc_info
-#         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-#         print(str(exc_type) + ":" + str(fname) + ":" + str(exc_tb.tb_lineno))
-#         print(exc_info)
-#         # exc_type, exc_obj, exc_tb = exc_info()
-#         # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-#         # print(exc_type, fname, exc_tb.tb_lineno)
-#     utils.send_alert("nrcSpreadsheetScraper " + error, str(task_id), details, exc_info)
 
 
 # /* ======================================================================= */#
@@ -1285,21 +1268,7 @@ class NrcAnalyzer:
                 lat, lng = correct_hemisphere(lat, lng, state, incidenttype)
 
             if lat and lng:
-                # we have an explicit lat/lng.  If we also have a block_geocode, then this is a chance to check
-                # the area id mapping
-                #
-                # Dan: Comment out for now. The idea is to not keep calling the geocode API, so this defeats that.
-                # if block_geocode:
-                #     lat_diff = abs(block_geocode['lat'] - lat)
-                #     lng_diff = abs(block_geocode['lng'] - lng)
-                #     # if lat_diff + lng_diff > 2:
-                #     #     msg = 'Lat/Lng mismatch for report %s. Centroid: %s Report: %s' % (task_id, block_geocode, parsed_report)
-                #     #     self.send_alert (msg)
-                #     #     yield self.make_tag(task_id, 'GeocodeMismatch', msg)
                 self.createGeocode(task_id, "Explicit", lat, lng)
-                # self.item_completed(task_id)
-                # else:
-                #     print('lat/lng not there')
             elif block_geocode:
                 print("1199")
                 # yield \
@@ -1372,7 +1341,6 @@ class NrcAnalyzer:
             else:
                 # Not enough info to find a geo code
                 print("Not enough info to find a geo code, reportnum=", task_id)
-                # utils.send_alert("Not enough info to find a geo code", task_id)
                 return
 
             if geo_results:
@@ -1403,19 +1371,11 @@ class NrcAnalyzer:
                                 # print(task_id, 'geocache updated', lat, lng)
                     except IndexError as error:
                         print("IndexError on geocoding result", str(error), task_id)
-                        # error_condition("IndexError", str(error), task_id, sys.exc_info())
                 else:
                     if geo_results["status"] == "ZERO_RESULTS":
                         print("No geocoding results, reportnum=", task_id)
-                        # utils.send_alert("No geocoding results", task_id)
                     else:
                         print("geocoding error")
-                        # error_condition(
-                        #     "geocoding error",
-                        #     "geocoding returned status:" + geo_results["status"],
-                        #     task_id,
-                        # )
-                        # print(task_id, ' geocoding returned status:', geo_results['status'])
 
             # print('NrcAnalyzer process_item', task_id)
             # self.db = NrcDatabase()
@@ -1423,12 +1383,10 @@ class NrcAnalyzer:
             parsed_report = self.db.loadParsedReport(task_id)
             # print('NrcAnalyzer process_item 3', parsed_report)
             if parsed_report is None:
-                # utils.send_alert("No parsed_report", task_id)
                 return
 
             scraped_report = self.db.loadScrapedReport(task_id)
             if scraped_report is None:
-                # utils.send_alert("No scraped_report", task_id)
                 return
             # print('NrcAnalyzer process_item scraped_report:', scraped_report)
 
@@ -1517,29 +1475,10 @@ class NrcAnalyzer:
                 )
             except (Exception, psycopg2.DatabaseError) as error:
                 print(error)
-                # utils.send_alert("Error on NrcAnalysis insert", str(error), task_id, sys.exc_info())
                 # pass
             # l.load_item()
 
             # self.item_completed(task_id)
-        # except ValueError as error:
-        #     error_condition("ValueError found", str(error), task_id, sys.exc_info())
-        # except psycopg2.DatabaseError as error:
-        #     error_condition("psycopg2.DatabaseError", str(error), task_id, sys.exc_info())
-        # except psycopg2.OperationalError as error:
-        #     error_condition("psycopg2.OperationalError", str(error), task_id, sys.exc_info())
-        # except psycopg2.Error as error:
-        #     error_condition(
-        #         "psycopg2.Error:",
-        #     )
-        # except RuntimeError as error:
-        #     error_condition("RuntimeError found", str(error), task_id, sys.exc_info())
-        # except TypeError as error:
-        #     error_condition("TypeError found", str(error), task_id, sys.exc_info())
-        # except NameError as error:
-        #     error_condition("NameError found", str(error), task_id, sys.exc_info())
-        # except:
-        #     error_condition("An error occured.", "An error occured", task_id, sys.exc_info())
         except:
             pass
 
@@ -1678,7 +1617,6 @@ class NrcAnalyzer:
             # print('1717:', msg)
             try:
                 pass
-                # self.send_alert(msg, reportnum)
             except Exception:
                 self.log(msg, log.ERROR)
                 raise
@@ -1699,10 +1637,6 @@ class NrcAnalyzer:
                 area_codes.append(m["area_code"])
 
         if len(area_codes) > 1:
-            # self.send_alert(
-            #     "WARNING: Multiple pattern matches in %s for AreaID: %s -- %s"
-            #     % (task_id, areaid, area_codes)
-            # )
             return None
 
         # clean up block ID to get rid of extraneous characters
@@ -1713,14 +1647,6 @@ class NrcAnalyzer:
 
         # got a numeric blockid, now make sure we have an area code
         if len(area_codes) == 0:
-            # send warning and bail out
-            # self.send_alert(
-            #     "WARNING: No pattern matches in %s for AreaID: %s"
-            #     % (
-            #         task_id,
-            #         areaid,
-            #     )
-            # )
             return None
 
         # we have a single area code and a block ID, so look them up in the table to get lat/lng
@@ -1730,10 +1656,6 @@ class NrcAnalyzer:
             # try prepending 'A' - sometimes this is missing in the report
             block = self.db.getBlockCentroid(area_codes[0], "A%s" % blockid)
         if not block:
-            # self.send_alert(
-            #     "WARNING: No matching lease block block found. report %s for areaid=%s blockid=%s"
-            #     % (task_id, area_codes[0], blockid)
-            # )
             return None
         # print('geocode_area_id block lat lng:', task_id, block)
         return {"lat": block["lat"], "lng": block["lng"]}
@@ -1782,7 +1704,7 @@ class NrcAnalyzer:
                 # unit with no value - do not send warning, just ignore
                 normalized_unit = self.normalize_unit(unit=value, send_warning=0)
                 if not normalized_unit:
-                    # utils.send_alert("WARNING: failed to parse value: '%s' " % (value,))
+                    pass
                 return None
 
         # Check to see if the value part is in the form "1 1/2" or "1/8"
@@ -1798,7 +1720,6 @@ class NrcAnalyzer:
             else:
                 v = float(v)
         except ValueError:
-            # utils.send_alert("WARNING: failed to parse amount: '%s' " % (v,))
             return None
 
         return (v, u)
@@ -1821,15 +1742,11 @@ class NrcAnalyzer:
         if len(matched) == 0:
             if send_warning:
                 pass
-                # utils.send_alert("WARNING: no pattern matches for unit: %s" % (unit,))
             return None
 
         if len(matched) > 1:
             if send_warning:
                 pass
-                # utils.send_alert(
-                #     "WARNING: Multiple pattern matches for unit: %s -- %s" % (unit, matched)
-                # )
             return None
 
         return matched[0]
@@ -1882,11 +1799,6 @@ class NrcAnalyzer:
             return "other"
 
         if len(matched) > 1:
-            pass
-            # utils.send_alert(
-            #     "WARNING: Multiple pattern matches for material: %s -- %s"
-            #     % (material_name, matched)
-            # )
             return None
 
         return matched[0]["group_label"]
@@ -2637,24 +2549,6 @@ class NrcSpreadsheetScraper:
                     DELETE FROM "NrcAnalysis";"""
                 # print('query:', query)
                 db_cursor.execute(query)
-            # except ValueError as error:
-            #     error_condition("ValueError found", str(error), task_id, sys.exc_info())
-            # except psycopg2.DatabaseError as error:
-            #     error_condition("psycopg2.DatabaseError", str(error), task_id, sys.exc_info())
-            # except psycopg2.OperationalError as error:
-            #     error_condition("psycopg2.OperationalError", str(error), task_id, sys.exc_info())
-            # except psycopg2.Error as error:
-            #     error_condition(
-            #         "psycopg2.Error:",
-            #     )
-            # except RuntimeError as error:
-            #     error_condition("RuntimeError found", str(error), task_id, sys.exc_info())
-            # except TypeError as error:
-            #     error_condition("TypeError found", str(error), task_id, sys.exc_info())
-            # except NameError as error:
-            #     error_condition("NameError found:" + str(error))
-            # except:
-            #     error_condition("An error occured.", "An error occured", task_id, sys.exc_info())
             except:
                 pass
 
@@ -2737,7 +2631,6 @@ class NrcSpreadsheetScraper:
                     # Invalid argument
                     i += 1
                     arg_error = True
-                    # error_condition("ERROR: Invalid argument: %s" % arg)
 
             # This catches three conditions:
             #   1. The last argument is a flag that requires parameters but the user did not supply the parameter
@@ -2746,7 +2639,6 @@ class NrcSpreadsheetScraper:
             except IndexError:
                 i += 1
                 arg_error = True
-                # error_condition("ERROR: An argument has invalid parameters")
 
         # /* ----------------------------------------------------------------------- */#
         # /*     Adjust options
@@ -2770,22 +2662,14 @@ class NrcSpreadsheetScraper:
         # Make sure arguments were properly parse
         if arg_error:
             bail = True
-            # error_condition("ERROR: Did not successfully parse arguments")
 
         # Make sure the downloaded file is not going to be accidentally deleted
         if download_file and not overwrite_downloaded_file and isfile(file_to_process):
             bail = True
-            # error_condition(
-            #     "ERROR: Overwrite=%s and download target exists: %s"
-            #     % (overwrite_downloaded_file, file_to_process)
-            # )
 
         # Make sure the user has write permission to the target directory
         if not os.access(dirname(file_to_process), os.W_OK):
             bail = True
-            # error_condition(
-            #     "ERROR: Need write permission for download directory: %s" % dirname(file_to_process)
-            # )
 
         # Handle subsample
         if process_subsample is not None:
@@ -2794,10 +2678,6 @@ class NrcSpreadsheetScraper:
                 process_subsample_min = int(process_subsample_min)
             except ValueError:
                 bail = True
-                # error_condition(
-                #     "ERROR: Invalid subsample or subsample min - must be an int: %s"
-                #     % process_subsample
-                # )
 
         # Exit if any problems were encountered
         if bail:
@@ -2814,7 +2694,6 @@ class NrcSpreadsheetScraper:
             connection.close()
         except psycopg2.OperationalError as e:
             error = "ERROR: Could not connect to database. See settings connection_string: %s" % (e)
-            # error_condition(error)
             return 1
 
         # /* ----------------------------------------------------------------------- */#
@@ -2827,7 +2706,6 @@ class NrcSpreadsheetScraper:
             try:
                 download(download_url, file_to_process)
             except urllib.error.HTTPError as e:
-                # error_condition("ERROR: Could not download from URL: %s, %s" % (download_url, e))
                 return 1
 
         # Prep workbook
@@ -2856,22 +2734,10 @@ class NrcSpreadsheetScraper:
                                 sheet = workbook.sheet_by_name(map_def["sheet_name"])
                                 if map_def["column"] not in column_names(sheet):
                                     validate_field_map_error = True
-                                    # error_condition(
-                                    #     "ERROR: Can't find source: %s -> %s.%s"
-                                    #     % (
-                                    #         file_to_process,
-                                    #         map_def["sheet_name"],
-                                    #         map_def["column"],
-                                    #     )
-                                    # )
 
                             # Could not get the sheet to test
                             except xlrd.XLRDError:
                                 validate_field_map_error = True
-                                # error_condition(
-                                #     "ERROR: Sheet does not exist: %s" % map_def["sheet_name"]
-                                # )
-
                         # Make sure schema and table exist in the DB
                         query = (
                             "SELECT * FROM information_schema.columns WHERE table_schema = '%s' AND table_name = '%s' AND column_name = '%s';"
@@ -2885,16 +2751,6 @@ class NrcSpreadsheetScraper:
                         results = db_cursor.fetchall()
                         if not results:
                             validate_field_map_error = True
-                            # error_condition(
-                            #     "ERROR: Invalid DB target: %s.%s.%s.%s.%s"
-                            #     % (
-                            #         db_host,
-                            #         db_name,
-                            #         map_def["db_schema"],
-                            #         map_def["db_table"],
-                            #         map_def["db_field"],
-                            #     )
-                            # )
 
                 # Encountered an error validating the field map
                 if validate_field_map_error:
@@ -3102,40 +2958,12 @@ class NrcSpreadsheetScraper:
                                     print(query)
                                 except Exception as e:
                                     print("Error printing SQL query to console (unicode weirdness?")
-                                    # error_condition(e.message)
                             if execute_queries:
                                 print(query, flush=True)
                                 db_cursor.execute(query)
                 # Done processing - update user
                 if print_progress:
                     print(" - Done")
-        # except ValueError as error:
-        #     error_condition("ValueError found", str(error), uid, sys.exc_info())
-        #     return 1
-        # except psycopg2.DatabaseError as error:
-        #     error_condition("psycopg2.DatabaseError", str(error), sys.exc_info())
-        #     return 1
-        # except psycopg2.OperationalError as error:
-        #     error_condition("psycopg2.OperationalError", str(error), sys.exc_info())
-        #     return 1
-        # except psycopg2.Error as error:
-        #     error_condition("psycopg2.Error", str(error), sys.exc_info())
-        #     return 1
-        # except RuntimeError as error:
-        #     error_condition("RuntimeError found", str(error), sys.exc_info())
-        #     return 1
-        # except TypeError as error:
-        #     error_condition("TypeError found", str(error), sys.exc_info())
-        #     return 1
-        # except NameError as error:
-        #     error_condition("NameError found on reportnum " + str(uid), str(error), sys.exc_info())
-        #     return 1
-        # except:
-        #     # (error, details, task_id=0, exc_info=None):
-        #     error_condition(
-        #         "ERROR: processing spreadsheet ", "except error", uid, sys.exc_info()
-        #     )  # % file_to_process)
-        #     return 1
         except:
             return 1
 
@@ -3209,18 +3037,7 @@ class NrcSpreadsheetScraper:
         testing_count = 0
         total_new_feedentry = 0
         print("number of potential new entries:", str(len(result)))
-        # return
-        # alert2: [1220613, u'NrcExtractor', u'ALERTS2', datetime.datetime(2018, 9, 4, 14, 35, 15, 314414), 1220613,
-        #          u'INCIDENT', datetime.datetime(2018, 8, 5, 6, 21, 15),
-        #          u'THE CALLER IS REPORTING A SHEEN FROM AN UNKNOWN SOURCE.', datetime.datetime(2018, 8, 5, 6, 0),
-        #          u'UNKNOWN SHEEN', u'UNKNOWN', u'10 CRAWFORD PARKWAY', u'VA', u'PORTSMOUTH', u'PORTSMOUTH', None, u'WATER',
-        #          u'UNKNOWN OIL', u'http://nrc.uscg.mil/', u'http://nrc.uscg.mil/',
-        #          datetime.datetime(2018, 9, 4, 14, 35, 15, 205053), None, 1220613, None, None, None, None, u'23704', None,
-        #          u'10.0 FEET', u'3.0 FEET', None, u'PORTSMOUTH', datetime.datetime(2018, 9, 4, 14, 35, 15, 259248), None,
-        #          1220613, u'OUN', u'UNKNOWN OIL', 0.0, u'UNKNOWN AMOUNT', u'YES', 0.0, u'UNKNOWN AMOUNT', None, 2049,
-        #          1220613, u'ZIP', 36.8274757, -76.3116235, Decimal('1')]
 
-        # task_id = None
         try:
             for alert2 in result:
                 # print('alert2:', alert2)
@@ -3366,17 +3183,6 @@ class NrcSpreadsheetScraper:
                 if suspected_responsible_company:
                     content += "<br/>Suspected Responsible Party: " + suspected_responsible_company
 
-                # THIS IS MISSING AFTER Suspected Responsible Party:
-                # Suspected Responsible Party: <br/><b>SkyTruth Analysis</b>
-                # <br/>Lat/Long: 47.571999, -122.346412 (Approximated from premise)
-                # <br/>Reported Sheen Size: 20 feet by 30 feet (area 600 sq. ft.)
-                # <br/>SkyTruth Minimum Estimate: 0.01 gallons
-                # <br/><b>Report Description</b>
-                # <br/>CALLER IS REPORTING THE DISCOVERY OF A MYSTERY SHEEN FROM AN UNKNOWN SOURCE IN THE DUWAMISH WATERWAY EAST.  CALLER OBSERVED THE SHEEN IN APPROXIMATELY THREE PATCHES OF THE LISTED SIZE.
-
-                # < b > SkyTruth
-                # Analysis < / b > < br / > Lat / Long: 43.023056, -75.112222(Explicit)
-
                 content += (
                     "<br/><b>SkyTruth Analysis</b><br/>"
                     + "Lat/Long: "
@@ -3503,34 +3309,12 @@ class NrcSpreadsheetScraper:
                 else:
                     if response_status != "Already in feedentry":
                         print(response.content)
-
-        # except ValueError as error:
-        #     error_condition("ValueError found", str(error), task_id, sys.exc_info())
-        # except psycopg2.DatabaseError as error:
-        #     error_condition("psycopg2.DatabaseError", str(error), task_id, sys.exc_info())
-        # except psycopg2.OperationalError as error:
-        #     error_condition("psycopg2.OperationalError", str(error), task_id, sys.exc_info())
-        # except psycopg2.Error as error:
-        #     error_condition("psycopg2.Error", str(error), task_id, sys.exc_info())
-        # except RuntimeError as error:
-        #     error_condition("RuntimeError found", str(error), task_id, sys.exc_info())
-        # except TypeError as error:
-        #     error_condition("TypeError found", str(error), task_id, sys.exc_info())
-        # except NameError as error:
-        #     error_condition("NameError found", str(error), task_id, sys.exc_info())
-        # except:
-        #     error_condition("An error occured.", "An error occured", task_id, sys.exc_info())
         except:
             pass
         # Success - commit inserts and destroy DB connections
         # db_conn.commit()  # connection is now set to autocommit
         db_cursor.close()
         db_conn.close()
-
-        # utils.send_email(
-        #     "nrcSpreadsheetScraper finished (" + str(total_new_feedentry) + ")",
-        #     "nrcSpreadsheetScraper finished (" + str(total_new_feedentry) + ")",
-        # )
 
         return 0
 

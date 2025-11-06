@@ -9,7 +9,6 @@ import urllib
 import xlrd
 
 sys.path.insert(0, "../")
-import utils
 import settings
 from database import NrcDatabase
 
@@ -161,23 +160,11 @@ class FlPollution:
                                 print(response.content)
                         except Exception as e:
                             print("Error processing incident:", e)
-                            # utils.error_condition("FL pollution", e, sys.exc_info())
 
         after_count = self.db.get_feedentry_count(self.source_id)["count"]
         print("before:", before_count)
         print("after:", after_count)
         print("total added:", (before_count - after_count))
-        # utils.send_email(
-        #     "FL Pollution finished (" + str(after_count - before_count) + ")",
-        #     (
-        #         "FL Pollution:"
-        #         + str(before_count)
-        #         + " after:"
-        #         + str(after_count)
-        #         + " added:"
-        #         + str(after_count - before_count)
-        #     ),
-        # )
 
     # /* ======================================================================= */#
     # /*     Define name_current_file() function

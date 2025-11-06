@@ -1,6 +1,5 @@
 # This Python file uses the following encoding: utf-8
 import db
-import utils
 from config import ALERTS2_API_URL
 from smtplib import SMTP  # sending email
 from jinja2 import Environment  # Jinja2 templating
@@ -25,16 +24,6 @@ for arg in sys.argv:
         test_email = arg
     last_arg = arg
 print("test email is ", test_email)
-
-
-# def error_condition(error, exc_info=None):
-#     print(error)
-#     if exc_info:
-#         print(exc_info)
-#         # exc_type, exc_obj, exc_tb = exc_info()
-#         # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-#         # print(exc_type, fname, exc_tb.tb_lineno)
-#     utils.send_alert('email_alerts.py ' + error, exc_info)
 
 
 def compose_item_message(self, item, msg_templates):
@@ -128,7 +117,6 @@ if __name__ == "__main__":
         print("number of subscriptions with new alerts:", len(subs))
     except Exception as e:
         print("Error getting subscriptions:", e)
-        # error_condition(e.message, sys.exc_info())
 
     emails_sent = 0
     dates_updated = 0
@@ -239,7 +227,6 @@ if __name__ == "__main__":
                     print("subscription_id:", aoiid)
                     print("mapurl:", params["static_map_url"])
                     print("fe_count:", fe_count)
-                    # utils.email_error(error)
 
             except Exception as exception2:
                 exc_info = sys.exc_info()
@@ -262,15 +249,3 @@ if __name__ == "__main__":
                 except:
                     print("no mapurl yet")
                 print("fe_count:", fe_count)
-                # utils.email_error(error)
-
-    # utils.send_email(
-    #     "alerts emailed (" + str(emails_sent) + ")",
-    #     str(emails_sent)
-    #     + " emails sent with "
-    #     + str(total_alerts_included)
-    #     + " alerts"
-    #     + " and "
-    #     + str(dates_updated)
-    #     + " updates",
-    # )
