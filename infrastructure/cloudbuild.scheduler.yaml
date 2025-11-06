@@ -1,8 +1,8 @@
 # Deploy/Update Scheduler for Job: email_alerts
 
 substitutions:
-  _JOB_NAME: email-alerts
-  _SCHEDULER_NAME: run-email-alerts
+  _JOB_NAME: job-name
+  _SCHEDULER_NAME: schedule-name
   _REGION: us-east1
   _SCHEDULE: "0 0 1 * *"        # midnight on the 1st of the month
 
@@ -17,8 +17,8 @@ steps:
       - |
 
         ## Declare the invoker SA
+        #
         INVOKER_SA="scheduler-invoker@${PROJECT_ID}.iam.gserviceaccount.com"
-
         
         ## let the Cloud Scheduler service agent mint tokens for the invoker SA
         #
