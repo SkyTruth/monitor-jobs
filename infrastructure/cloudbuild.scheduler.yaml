@@ -50,8 +50,8 @@ steps:
             --schedule "${_SCHEDULE}" \
             --uri "$${EXEC_URI}" \
             --http-method POST \
-            --oidc-service-account-email "$${INVOKER_SA}" \
-            --oidc-token-audience "$${EXEC_URI}"
+            --oauth-service-account-email "$${INVOKER_SA}" \
+            --oauth-token-scope="https://www.googleapis.com/auth/cloud-platform"
         else
           echo "Creating scheduler ${_SCHEDULER_NAME}"
           gcloud scheduler jobs create http "${_SCHEDULER_NAME}" \
@@ -59,6 +59,6 @@ steps:
             --schedule "${_SCHEDULE}" \
             --uri "$${EXEC_URI}" \
             --http-method POST \
-            --oidc-service-account-email "$${INVOKER_SA}" \
-            --oidc-token-audience "$${EXEC_URI}"
+            --oauth-service-account-email "$${INVOKER_SA}" \
+            --oauth-token-scope="https://www.googleapis.com/auth/cloud-platform"
         fi

@@ -76,4 +76,4 @@ jobs:
     with:
       job_name: email-alerts
       scheduler_name: run-email-alerts
-      Schedule: "*/15 * * * *"  #Every 15 minutes
+      Schedule: "1 * * * *"  #Every hour
