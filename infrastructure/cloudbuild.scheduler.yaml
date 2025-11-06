@@ -8,6 +8,7 @@ substitutions:
 
 options:
   logging: CLOUD_LOGGING_ONLY
+  substitutionOption: 'ALLOW_LOOSE'
 
 steps:
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
