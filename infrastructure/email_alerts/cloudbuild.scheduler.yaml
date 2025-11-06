@@ -20,11 +20,6 @@ steps:
         ## Declare the invoker SA
         INVOKER_SA="scheduler-invoker@${PROJECT_ID}.iam.gserviceaccount.com"
 
-        ## Ensure the invoker SA exists (optional but handy)
-        #
-        gcloud iam service-accounts describe "$${INVOKER_SA}" >/dev/null 2>&1 || \
-          gcloud iam service-accounts create "$(echo "$${INVOKER_SA}" | cut -d@ -f1)" \
-            --display-name="Scheduler Invoker"
         
         ## let the Cloud Scheduler service agent mint tokens for the invoker SA
         #
@@ -45,7 +40,7 @@ steps:
 
         ## Resolve the execution URI and set audience to the same URI
         #
-        EXEC_URI="$(gcloud run jobs describe "${_JOB_NAME}" --region "${_REGION}" --format='value(status.executionUri)')"
+        EXEC_URI="https://${_REGION}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${PROJECT_ID}/jobs/${_JOB_NAME}:run"
 
         ## Create or update the Scheduler job
         #
