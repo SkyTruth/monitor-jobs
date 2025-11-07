@@ -1,5 +1,5 @@
-import argparse
 import google_crc32c
+
 
 def access_secret_version(project_id, secret_id, version_id):
     """
@@ -34,4 +34,3 @@ def access_secret_version(project_id, secret_id, version_id):
     payload = response.payload.data.decode("UTF-8")
     # print("value:",payload)
     return payload
-

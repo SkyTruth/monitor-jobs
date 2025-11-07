@@ -1,8 +1,9 @@
 import os
-from stat import *
-import config
 import smtplib
 from smtplib import SMTPException
+from stat import *
+
+import config
 
 
 def send_email(subject, text, to=None):
@@ -38,13 +39,7 @@ def send_alert(message, exc_info=None):
         exc_type, exc_obj, exc_tb = exc_info
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         msg_content = (
-            msg_content
-            + "   "
-            + str(exc_type)
-            + ":"
-            + str(fname)
-            + ":"
-            + str(exc_tb.tb_lineno)
+            msg_content + "   " + str(exc_type) + ":" + str(fname) + ":" + str(exc_tb.tb_lineno)
         )
     email_error(msg_content)
 

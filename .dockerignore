@@ -1,6 +1,6 @@
-__pycache__/
-*.py[codz]
-*$py.class
+__pycache__
+.git
+.pre-commit-config.yaml
 
 #GH actions auth artifacts
 gha-creds-*.json

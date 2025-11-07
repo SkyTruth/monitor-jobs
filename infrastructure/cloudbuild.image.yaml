@@ -1,0 +1,37 @@
+# Builds and pushes the shared image all jobs will use
+
+substitutions:
+  _REPO: monitor-jobs
+  _REGION: us-east1
+  _IMAGE_NAME: jobs
+  _COMMIT_SHA: "$SHORT_SHA"
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+steps:
+  - name: gcr.io/cloud-builders/docker
+    id: "Build"
+    args:
+      - "build"
+      - "-t"
+      - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:${_COMMIT_SHA}"
+      - "-t"
+      - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:latest"
+      - "."
+
+  - name: gcr.io/cloud-builders/docker
+    id: "Push"
+    args:
+      - "push"
+      - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:${_COMMIT_SHA}"
+
+  - name: gcr.io/cloud-builders/docker
+    id: "Push latest"
+    args:
+      - "push"
+      - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:latest"
+
+images:
+  - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:${_COMMIT_SHA}"
+  - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:latest"

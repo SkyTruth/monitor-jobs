@@ -1,17 +1,18 @@
-import os
-import sys
 import io
+import os
 import subprocess
+import sys
 
 # import gdal2tiles
 import db
-import utils
 import rasterio
 import rasterio.warp
-from rasterio.crs import CRS
 from googleapiclient.discovery import build
-from oauth2client.service_account import ServiceAccountCredentials
 from googleapiclient.http import MediaIoBaseDownload
+from oauth2client.service_account import ServiceAccountCredentials
+from rasterio.crs import CRS
+
+import utils
 
 
 class Tif2Tiles:
