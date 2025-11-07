@@ -1,7 +1,8 @@
-import config
-import requests
-import psycopg2
 import sys
+
+import config
+import psycopg2
+import requests
 
 
 def checkExistingOrders():

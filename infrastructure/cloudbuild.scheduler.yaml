@@ -1,0 +1,65 @@
+# Deploy/Update Scheduler for Job: email_alerts
+
+substitutions:
+  _JOB_NAME: job-name
+  _SCHEDULER_NAME: schedule-name
+  _REGION: us-east1
+  _SCHEDULE: "0 0 1 * *"        # midnight on the 1st of the month
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  substitutionOption: 'ALLOW_LOOSE'
+
+steps:
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
+
+        ## Declare the invoker SA
+        #
+        INVOKER_SA="scheduler-invoker@${PROJECT_ID}.iam.gserviceaccount.com"
+        
+        ## let the Cloud Scheduler service agent mint tokens for the invoker SA
+        #
+        PROJECT_NUM="$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')"
+        SCHED_AGENT="service-$${PROJECT_NUM}@gcp-sa-cloudscheduler.iam.gserviceaccount.com"
+        gcloud iam service-accounts add-iam-policy-binding "$${INVOKER_SA}" \
+          --member="serviceAccount:$${SCHED_AGENT}" \
+          --role="roles/iam.serviceAccountTokenCreator" || true
+
+
+        ## Bind least privilege on the specific Job being scheduled
+        #
+        ROLE="roles/run.jobsExecutor"   # or roles/run.invoker
+        gcloud run jobs add-iam-policy-binding "${_JOB_NAME}" \
+          --region "${_REGION}" \
+          --member="serviceAccount:$${INVOKER_SA}" \
+          --role="$${ROLE}"
+
+        ## Resolve the execution URI and set audience to the same URI
+        #
+        EXEC_URI="https://${_REGION}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${PROJECT_ID}/jobs/${_JOB_NAME}:run"
+
+        ## Create or update the Scheduler job
+        #
+        if gcloud scheduler jobs describe "${_SCHEDULER_NAME}" --location "${_REGION}" >/dev/null 2>&1; then
+          echo "Updating scheduler ${_SCHEDULER_NAME}"
+          gcloud scheduler jobs update http "${_SCHEDULER_NAME}" \
+            --location "${_REGION}" \
+            --schedule "${_SCHEDULE}" \
+            --uri "$${EXEC_URI}" \
+            --http-method POST \
+            --oauth-service-account-email "$${INVOKER_SA}" \
+            --oauth-token-scope="https://www.googleapis.com/auth/cloud-platform"
+        else
+          echo "Creating scheduler ${_SCHEDULER_NAME}"
+          gcloud scheduler jobs create http "${_SCHEDULER_NAME}" \
+            --location "${_REGION}" \
+            --schedule "${_SCHEDULE}" \
+            --uri "$${EXEC_URI}" \
+            --http-method POST \
+            --oauth-service-account-email "$${INVOKER_SA}" \
+            --oauth-token-scope="https://www.googleapis.com/auth/cloud-platform"
+        fi

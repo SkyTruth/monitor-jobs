@@ -1,16 +1,15 @@
-# This Python file uses the following encoding: utf-8
+import os
+import re
+import sys
+import unicodedata
+from email.mime.text import MIMEText
+from smtplib import SMTP  # sending email
+from urllib.parse import parse_qs, urlparse
+
+import config
 import db
 from config import ALERTS2_API_URL
-from smtplib import SMTP  # sending email
 from jinja2 import Environment  # Jinja2 templating
-from urllib.parse import urlparse, parse_qs
-import re
-import config
-import sys
-import os
-from email.mime.text import MIMEText
-import unicodedata
-
 
 # open the file
 filein = open("templates/index.html")
@@ -143,7 +142,7 @@ if __name__ == "__main__":
                 last_published = "2018-01-01"
                 fe_count = 0
                 for feedentry in fes:
-                    fe_lp = str((feedentry[4]))[0:23]
+                    fe_lp = str(feedentry[4])[0:23]
                     if fe_lp > last_published:
                         last_published = fe_lp
                     fe_count = fe_count + 1

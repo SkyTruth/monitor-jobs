@@ -1,0 +1,56 @@
+name: Deploy Cloud Run Job
+
+on:
+  workflow_call:
+    inputs:
+      job_name:
+        required: true
+        type: string
+      job_path:
+        required: true
+        type: string
+      cb_runjob_path:
+        required: false
+        type: string
+        default: infrastructure/cloudbuild.job.yaml
+      cpu:
+        required: false
+        type: string
+        default: "1"
+      memory:
+        required: false
+        type: string
+        default: "512Mi"
+      timeout:
+        required: false
+        type: string
+        default: "1800s"
+
+jobs:
+  deploy-job:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: skytruth-alerts2
+          workload_identity_provider: "projects/33114313460/locations/global/workloadIdentityPools/github-pool/providers/github-actions"
+          service_account: "github-deployer@skytruth-alerts2.iam.gserviceaccount.com"
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          version: '>= 516.0.0'
+          project_id: skytruth-alerts2
+
+      - name: Submit Cloud Build (Cloud Run Job)
+        run: |
+          gcloud builds submit .\
+            --config "${{ inputs.cb_runjob_path }}" \
+            --substitutions=_JOB_NAME="${{ inputs.job_name }}",_JOB_PATH="${{ inputs.job_path }}",_CPU="${{ inputs.cpu }}",_MEMORY="${{ inputs.memory }}",_TIMEOUT="${{ inputs.timeout }}"

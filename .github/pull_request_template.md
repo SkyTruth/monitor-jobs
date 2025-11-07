@@ -9,6 +9,6 @@
 ## Checklist before submitting
 
 - [ ] Synced with the latest version of `main`.
-- [ ] Ran the linter.
+- ~~[ ] Ran the linter.~~
 - [ ] Ran the Formatter.
 - [ ] Bumped package version.

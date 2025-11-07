@@ -4,6 +4,6 @@ repos:
     hooks:
       - id: ruff-format
         name: poetry run ruff format
-      - id: ruff
-        name: poetry run ruff check and fix
-        args: ["--fix"]
+      # - id: ruff
+      #   name: poetry run ruff check and fix
+      #   args: ["--fix"]

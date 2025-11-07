@@ -1,0 +1,52 @@
+# ─── Stage 1: builder ───
+FROM python:3.10-slim-bookworm AS builder
+
+ENV \
+  POETRY_NO_INTERACTION=1 \
+  POETRY_VIRTUALENVS_CREATE=false \
+  POETRY_HOME="/opt/poetry" \
+  PATH="/opt/poetry/bin:${PATH}"
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      curl \
+      build-essential \
+      gdal-bin \
+      libgdal-dev \
+      libproj-dev \
+      proj-data \
+      proj-bin \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN curl -sSL https://install.python-poetry.org | python3 -
+
+WORKDIR /app
+
+COPY pyproject.toml poetry.lock ./
+RUN poetry install --only main --no-root
+
+COPY src/ ./
+
+FROM python:3.10-slim-bookworm AS runtime
+
+ENV \
+  POETRY_NO_INTERACTION=1 \
+  POETRY_VIRTUALENVS_CREATE=false \
+  POETRY_HOME="/opt/poetry" \
+  PATH="/opt/poetry/bin:${PATH}"
+
+# Install only runtime system deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      gdal-bin \
+      libgdal32  \
+      libproj25 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+COPY src/ ./src
+
+ENTRYPOINT ["python"]
+CMD ["-c", "print('Specify a module to run')"]

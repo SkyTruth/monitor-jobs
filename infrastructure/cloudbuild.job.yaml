@@ -1,0 +1,46 @@
+# Deploy/Update Cloud Run Job: email_alerts
+
+substitutions:
+  _CPU: "1"
+  _MEMORY: 512Mi
+  _JOB_NAME: name
+  _JOB_PATH: path
+  _REGION: us-east1
+  _REPO: monitor-jobs
+  _IMAGE_NAME: jobs
+  _TAG: latest
+  _TIMEOUT: 1800s
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  substitutionOption: 'ALLOW_LOOSE'
+
+steps:
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
+        set -o pipefail
+        
+        IMAGE="us-east1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:${_TAG}"
+
+        if gcloud run jobs describe "${_JOB_NAME}" --region "${_REGION}" >/dev/null 2>&1; then
+          echo "Updating job ${_JOB_NAME}"
+          gcloud run jobs update "${_JOB_NAME}" \
+            --image "$$IMAGE" \
+            --region "${_REGION}" \
+            --task-timeout="${_TIMEOUT}" \
+            --command python \
+            --args="-m,${_JOB_PATH}"
+        else
+          echo "Creating job ${_JOB_NAME}"
+          gcloud run jobs create "${_JOB_NAME}" \
+            --image "$$IMAGE" \
+            --region "${_REGION}" \
+            --task-timeout="${_TIMEOUT}" \
+            --cpu=${_CPU}
+            --memory=${_MEMORY}
+            --command python \
+            --args="-m,${_JOB_PATH}"
+        fi
