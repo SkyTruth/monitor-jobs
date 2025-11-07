@@ -39,22 +39,19 @@ Sample command:
     ./bin/nrcSpreadsheetScraper.py --db-name test_skytruth --db-user `whoami` --db-host localhost
 """
 
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 
-import re
-from datetime import datetime
 import os
-from os.path import *
+import re
 import sys
 import urllib
+from datetime import datetime
+from os.path import *
+
 import psycopg2
-import xlrd
-import urllib
 import requests
-from items import NrcTag, BotTaskError, FeedEntryTag
+import xlrd
 from database import NrcDatabase
+from items import BotTaskError, FeedEntryTag, NrcTag
 from scrapy.loader import ItemLoader
 from scrapy.selector import Selector
 
@@ -657,7 +654,7 @@ def process_field_map(**kwargs):
 # /* ======================================================================= */#
 
 
-class NrcScrapedReportFields(object):
+class NrcScrapedReportFields:
     """
     Some fields in the NRC spreadsheet do not map directly to a column in the
     database.  These fields require an additional processing step that is
@@ -797,7 +794,7 @@ class NrcScrapedReportFields(object):
         Required to insert a NULL value
         """
 
-        return kwargs.get("db_null_value", None)
+        return kwargs.get("db_null_value")
 
     # /* ----------------------------------------------------------------------- */#
     # /*     Define ft_id() function
@@ -809,7 +806,7 @@ class NrcScrapedReportFields(object):
         Required to insert a NULL value
         """
 
-        return kwargs.get("db_null_value", None)
+        return kwargs.get("db_null_value")
 
     # /* ----------------------------------------------------------------------- */#
     # /*     Define _datetime_caller() function
@@ -889,7 +886,7 @@ class NrcScrapedReportFields(object):
 # /* ======================================================================= */#
 
 
-class NrcParsedReportFields(object):
+class NrcParsedReportFields:
     """
     Some fields in the NRC spreadsheet do not map directly to a column in the
     database.  These fields require an additional processing step that is
@@ -909,7 +906,7 @@ class NrcParsedReportFields(object):
     @staticmethod
     def areaid(**kwargs):
         # TODO: Implement - currently returning NULL
-        return kwargs.get("db_null_value", None)
+        return kwargs.get("db_null_value")
 
     # /* ----------------------------------------------------------------------- */#
     # /*     Define blockid() static method
@@ -918,7 +915,7 @@ class NrcParsedReportFields(object):
     @staticmethod
     def blockid(**kwargs):
         # TODO: Implement - currently returning NULL
-        return kwargs.get("db_null_value", None)
+        return kwargs.get("db_null_value")
 
     # /* ----------------------------------------------------------------------- */#
     # /*     Define platform_letter() static method
@@ -927,7 +924,7 @@ class NrcParsedReportFields(object):
     @staticmethod
     def platform_letter(**kwargs):
         # TODO: Implement - currently returning NULL
-        return kwargs.get("db_null_value", None)
+        return kwargs.get("db_null_value")
 
     # /* ----------------------------------------------------------------------- */#
     # /*     Define _sheen_handler() static method
@@ -1018,7 +1015,7 @@ class NrcParsedReportFields(object):
 
     @staticmethod
     def affected_area(**kwargs):
-        return kwargs.get("db_null_value", None)
+        return kwargs.get("db_null_value")
 
     # /* ----------------------------------------------------------------------- */#
     # /*     Define time_stamp() static method
@@ -1030,7 +1027,7 @@ class NrcParsedReportFields(object):
         Required to insert a NULL value
         """
 
-        return kwargs.get("db_null_value", None)
+        return kwargs.get("db_null_value")
 
     # /* ----------------------------------------------------------------------- */#
     # /*     Define ft_id() static method
@@ -1042,7 +1039,7 @@ class NrcParsedReportFields(object):
         Required to insert a NULL value
         """
 
-        return kwargs.get("db_null_value", None)
+        return kwargs.get("db_null_value")
 
     # /* ----------------------------------------------------------------------- */#
     # /*     Define _coord_formatter() protected static method
@@ -1102,7 +1099,7 @@ class NrcParsedReportFields(object):
 # /* ======================================================================= */#
 
 
-class NrcScrapedMaterialFields(object):
+class NrcScrapedMaterialFields:
     """
     Some fields in the NRC spreadsheet do not map directly to a column in the
     database.  These fields require an additional processing step that is
@@ -1121,7 +1118,7 @@ class NrcScrapedMaterialFields(object):
 
     @staticmethod
     def ft_id(**kwargs):
-        return kwargs.get("db_null_value", None)
+        return kwargs.get("db_null_value")
 
     # /* ----------------------------------------------------------------------- */#
     # /*     Define st_id() static method
@@ -1129,7 +1126,7 @@ class NrcScrapedMaterialFields(object):
 
     @staticmethod
     def st_id(**kwargs):
-        return kwargs.get("db_null_value", None)
+        return kwargs.get("db_null_value")
 
 
 # /* ======================================================================= */#
@@ -1137,7 +1134,7 @@ class NrcScrapedMaterialFields(object):
 # /* ======================================================================= */#
 
 
-class BotTaskStatusFields(object):
+class BotTaskStatusFields:
     """
     Some fields in the NRC spreadsheet do not map directly to a column in the
     database.  These fields require an additional processing step that is
@@ -1555,7 +1552,7 @@ class NrcAnalyzer:
                 geocode_state = xxs.select('//address_component[type="country"]/short_name/text()')
                 if geocode_state:
                     geocode_state = geocode_state.extract()[0]
-                    if not geocode_state in self.us_territories:
+                    if geocode_state not in self.us_territories:
                         geocode_state = None
 
             if source == "ADDRESS":
@@ -2705,7 +2702,7 @@ class NrcSpreadsheetScraper:
             print("Target: %s" % file_to_process)
             try:
                 download(download_url, file_to_process)
-            except urllib.error.HTTPError as e:
+            except urllib.error.HTTPError:
                 return 1
 
         # Prep workbook
@@ -2956,7 +2953,7 @@ class NrcSpreadsheetScraper:
                                 # print("")
                                 try:
                                     print(query)
-                                except Exception as e:
+                                except Exception:
                                     print("Error printing SQL query to console (unicode weirdness?")
                             if execute_queries:
                                 print(query, flush=True)

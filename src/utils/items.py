@@ -3,16 +3,17 @@
 # See documentation in:
 # http://doc.scrapy.org/topics/items.html
 
-import time
 import random
-from datetime import date, datetime
 import re
+import time
+from datetime import date, datetime
 from urllib.parse import urljoin
+
 from dateutil.parser import parse as parse_date
-from scrapy.item import Item, Field
 
 # from scrapy.loader.processors import TakeFirst, MapCompose, Join
-from itemloaders.processors import TakeFirst, MapCompose, Join
+from itemloaders.processors import Join, MapCompose, TakeFirst
+from scrapy.item import Field, Item
 
 
 def format_datetime(dt):
@@ -67,9 +68,7 @@ def convert_lat_lng(l):
             pass
 
     # If there is an 'S' or a 'W' in there, then the value is negative
-    if re.compile("[SW]", re.IGNORECASE).search(l) and result > 0:
-        result = -result
-    elif re.compile("[NE]", re.IGNORECASE).search(l) and result < 0:
+    if re.compile("[SW]", re.IGNORECASE).search(l) and result > 0 or re.compile("[NE]", re.IGNORECASE).search(l) and result < 0:
         result = -result
 
     # round off to remove irele precision

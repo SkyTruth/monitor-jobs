@@ -1,21 +1,18 @@
+import logging
 import os
+import uuid
 from datetime import datetime
 from stat import *
 
 import config
 import psycopg2
-from datetime import datetime
-
-from __future__ import absolute_import
-import uuid
-import logging
 
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
-from psycopg2.extras import RealDictCursor as DictCursor
-from scrapy import exceptions
 import settings
 from items import NrcItem
+from psycopg2.extras import RealDictCursor as DictCursor
+from scrapy import exceptions
 
 os.environ["PL_API_KEY"] = config.PL_API_KEY
 api_key = os.environ.get("PL_API_KEY")
@@ -366,7 +363,7 @@ def insert_file_upload(
             conn.close()
 
 
-class NrcDatabase(object):
+class NrcDatabase:
     @staticmethod
     def uuid_str(uuid_obj):
         s = uuid_obj.hex

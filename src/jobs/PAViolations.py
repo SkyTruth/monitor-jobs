@@ -1,25 +1,22 @@
-from __future__ import absolute_import
-from datetime import datetime, timedelta
-import requests
 import os
 import sys
-from os.path import *
 import uuid
+from datetime import datetime, timedelta
+from os.path import *
+
+import requests
 
 sys.path.insert(0, "../")
-from database import NrcDatabase
-
-
-from selenium import webdriver
-from selenium.webdriver.support.ui import Select
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as cond
-from selenium.common.exceptions import NoAlertPresentException
-from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.common.by import By
-from pyvirtualdisplay.display import Display
-import settings
 import csv
+
+import settings
+from database import NrcDatabase
+from pyvirtualdisplay.display import Display
+from selenium import webdriver
+from selenium.common.exceptions import NoAlertPresentException, TimeoutException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as cond
+from selenium.webdriver.support.ui import Select, WebDriverWait
 
 
 class PAPermits:

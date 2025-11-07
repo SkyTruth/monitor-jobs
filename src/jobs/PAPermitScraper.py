@@ -1,14 +1,12 @@
 # PA Well Permit Scraper
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 
 import re
-from datetime import datetime, timedelta
-import uuid
-import requests
-from xml.etree import ElementTree
 import sys
+import uuid
+from datetime import datetime, timedelta
+from xml.etree import ElementTree
+
+import requests
 
 sys.path.insert(0, "../")
 from database import NrcDatabase
@@ -22,7 +20,7 @@ class PAPermitScraper:
 
     def write_rawdata(self, rawdata):
         date_fmt = "%Y_%m_%d_%H:%M"
-        f = open("rawdata/pa_permits_" + datetime.today().strftime((date_fmt)) + ".xml", "w")
+        f = open("rawdata/pa_permits_" + datetime.today().strftime(date_fmt) + ".xml", "w")
         f.write(rawdata)
 
     def parse_atom_field(self, field):
@@ -270,7 +268,7 @@ class PAPermitScraper:
         try:
             before_count = self.db.get_feedentry_count(self.source_id)["count"]
             to_date = datetime.today()
-            from_date = to_date - timedelta(days=int(15))
+            from_date = to_date - timedelta(days=15)
             # Use these dates for bringing over img_papermit. Start by adding 1000 to existing to_date timedelta.
             # to_date = to_date - timedelta(days=int(7500))
             # from_date = to_date - timedelta(days=int(1000))

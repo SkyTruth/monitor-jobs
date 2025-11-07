@@ -12,8 +12,6 @@ from googleapiclient.http import MediaIoBaseDownload
 from oauth2client.service_account import ServiceAccountCredentials
 from rasterio.crs import CRS
 
-import utils
-
 
 class Tif2Tiles:
     # email = None

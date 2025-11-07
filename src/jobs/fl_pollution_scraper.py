@@ -1,11 +1,11 @@
-from __future__ import absolute_import
-from datetime import datetime
 import hashlib
-import requests
 import os
 import sys
-from os.path import *
 import urllib
+from datetime import datetime
+from os.path import *
+
+import requests
 import xlrd
 
 sys.path.insert(0, "../")
