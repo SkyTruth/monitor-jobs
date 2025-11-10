@@ -4,13 +4,12 @@ import uuid
 from datetime import datetime
 from stat import *
 
-import config
+from src.utils import config
 import psycopg2
 
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
-import settings
-from items import NrcItem
+from src.utils.items import NrcItem
 from psycopg2.extras import RealDictCursor as DictCursor
 from scrapy import exceptions
 

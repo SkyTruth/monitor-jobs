@@ -1,4 +1,4 @@
-import common
+from src.utils import common
 
 # Planet API key
 PL_API_KEY = common.access_secret_version("skytruth-alerts2", "PL_API_KEY", "latest")

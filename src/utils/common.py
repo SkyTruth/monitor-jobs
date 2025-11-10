@@ -1,4 +1,5 @@
 import google_crc32c
+from google.cloud import secretmanager
 
 
 def access_secret_version(project_id, secret_id, version_id):
@@ -9,8 +10,6 @@ def access_secret_version(project_id, secret_id, version_id):
 
     # print(project_id, secret_id, version_id)
     # Import the Secret Manager client library.
-    from google.cloud import secretmanager
-
     # Create the Secret Manager client.
     client = secretmanager.SecretManagerServiceClient()
 
