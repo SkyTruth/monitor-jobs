@@ -6,16 +6,9 @@ from os.path import *
 import requests
 
 sys.path.insert(0, "../")
-from database import NrcDatabase
-
-try:
-    from bs4 import (
-        BeautifulSoup,
-    )
-except ImportError:
-    from BeautifulSoup import BeautifulSoup
-
-import settings
+from src.utils.db import NrcDatabase
+from bs4 import BeautifulSoup
+from src.utils import config
 from pyvirtualdisplay.display import Display
 from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException, TimeoutException

@@ -382,11 +382,11 @@ class NrcDatabase:
 
     def __init__(self):
         print("NrcDatabase __init__")
-        self.db_connection_string = settings.DB_CONNECTION_STRING
-        self.host = settings.DB_HOST
-        self.user = settings.DB_USER
-        self.passwd = settings.DB_PASS
-        self.dbname = settings.DB_DATABASE
+        self.db_connection_string = config.DB_CONNECTION_STRING
+        self.host = config.DB_HOST
+        self.user = config.DB_USER
+        self.passwd = config.DB_PASS
+        self.dbname = config.DB_DATABASE
         self.db = None
         psycopg2.extras.register_uuid()
         self.table_keyfields = {}

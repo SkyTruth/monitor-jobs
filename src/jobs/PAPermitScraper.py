@@ -9,7 +9,7 @@ from xml.etree import ElementTree
 import requests
 
 sys.path.insert(0, "../")
-from database import NrcDatabase
+from src.utils.db import NrcDatabase
 
 
 class PAPermitScraper:

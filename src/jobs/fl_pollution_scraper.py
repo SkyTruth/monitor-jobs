@@ -9,8 +9,8 @@ import requests
 import xlrd
 
 sys.path.insert(0, "../")
-import settings
-from database import NrcDatabase
+from src.utils import config
+from src.utils.db import NrcDatabase
 
 
 class FlPollution:
@@ -155,7 +155,7 @@ class FlPollution:
                                     "status": "published",
                                     "tags": ["Florida", "Pollution"],
                                 }
-                                url = settings.API_POST_FEEDENTRY
+                                url = config.API_POST_FEEDENTRY
                                 response = requests.post(url, data=post_fields)
                                 print(response.content)
                         except Exception as e:

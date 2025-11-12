@@ -9,8 +9,8 @@ import requests
 sys.path.insert(0, "../")
 import csv
 
-import settings
-from database import NrcDatabase
+from src.utils import config
+from src.utils.db import NrcDatabase
 from pyvirtualdisplay.display import Display
 from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException, TimeoutException
@@ -343,7 +343,7 @@ class PAPermits:
                 "tags": tags,
                 "status": "published",
             }
-            url = settings.API_POST_FEEDENTRY
+            url = config.API_POST_FEEDENTRY
             print("post_fields:", post_fields)
             response = requests.post(url, data=post_fields)
             print(response.content)
