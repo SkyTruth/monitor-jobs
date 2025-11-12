@@ -4,8 +4,8 @@ from src.utils import common
 PL_API_KEY = common.access_secret_version("skytruth-alerts2", "PL_API_KEY", "latest")
 
 # db connection string
-ALERTS2_CONNECTION_STRING = common.access_secret_version(
-    "skytruth-alerts2", "ALERTS2_CONNECTION_STRING", "latest"
+ALERTS2_CONNECTION_STRING = common.access_secret_version(  # can be consolidated
+    "skytruth-alerts2", "DB_CONNECTION_STRING_DEV", "latest"
 )
 
 EMAIL_FROM_USER = "no-reply@skytruth.org"  # backend from user
@@ -19,7 +19,7 @@ MANDRILL_PASS = common.access_secret_version("skytruth-alerts2", "MANDRILL_PASS"
 
 ALERTS2_API_URL = "https://skytruth-alerts2.appspot.com/api/"
 DB_CONNECTION_STRING = common.access_secret_version(
-    "skytruth-alerts2", "DB_CONNECTION_STRING", "latest"
+    "skytruth-alerts2", "DB_CONNECTION_STRING_DEV", "latest"
 )
 DB_HOST = "34.75.201.96"
 DB_USER = "postgres"
