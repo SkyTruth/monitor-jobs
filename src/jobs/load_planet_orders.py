@@ -1,6 +1,6 @@
 import sys
 
-import config
+from src.utils import config
 import psycopg2
 import requests
 

@@ -4,7 +4,7 @@ import subprocess
 import sys
 
 # import gdal2tiles
-import db
+from src.utils import db
 import rasterio
 import rasterio.warp
 from googleapiclient.discovery import build
