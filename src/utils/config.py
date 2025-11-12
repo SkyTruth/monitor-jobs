@@ -3,15 +3,9 @@ from src.utils import common
 # Planet API key
 PL_API_KEY = common.access_secret_version("skytruth-alerts2", "PL_API_KEY", "latest")
 
-# db connection string
-ALERTS2_CONNECTION_STRING = common.access_secret_version(  # can be consolidated
-    "skytruth-alerts2", "DB_CONNECTION_STRING_DEV", "latest"
-)
-
 EMAIL_FROM_USER = "no-reply@skytruth.org"  # backend from user
 GMAIL_USER = "no-reply@skytruth.org"  # backend email user
 
-GMAIL_PWD = common.access_secret_version("skytruth-alerts2", "GMAIL_PWD", "latest")
 MANDRILL_FROM = "alerts@skytruth.org"
 MANDRILL_HOST = "smtp.mandrillapp.com"
 MANDRILL_PORT = 587
@@ -31,4 +25,3 @@ DB_DATABASE = "alerts2"
 API_POST_FEEDENTRY = "https://skytruth-alerts2.appspot.com/api/api_post_feedentry/"
 # GMAIL_FROM = "alerts@skytruth.org"  # scraper from user
 # GMAIL_USER = "data@skytruth.org"  # scraper email user
-GMAIL_PWD = common.access_secret_version("skytruth-alerts2", "GMAIL_PWD", "latest")
