@@ -2502,6 +2502,7 @@ class NrcSpreadsheetScraper:
         current_year = datetime.strftime(now, "%y")
         download_url = f"https://nrc.uscg.mil/FOIAFiles/CY{current_year}.xlsx"
         file_to_process = os.getcwd() + sep + name_current_file(basename(download_url))
+        print("This file is being used to process NRC data:", file_to_process)
         overwrite_downloaded_file = False
         download_file = True
         process_subsample = None
@@ -2658,14 +2659,17 @@ class NrcSpreadsheetScraper:
 
         # Make sure arguments were properly parse
         if arg_error:
+            print("ERROR: Invalid argument(s) detected.")
             bail = True
 
         # Make sure the downloaded file is not going to be accidentally deleted
         if download_file and not overwrite_downloaded_file and isfile(file_to_process):
+            print("ERROR: Target file already exists. Use --overwrite-download to overwrite.")
             bail = True
 
         # Make sure the user has write permission to the target directory
         if not os.access(dirname(file_to_process), os.W_OK):
+            print("ERROR: No write permission to target directory.")
             bail = True
 
         # Handle subsample
@@ -2674,10 +2678,12 @@ class NrcSpreadsheetScraper:
                 process_subsample = int(process_subsample)
                 process_subsample_min = int(process_subsample_min)
             except ValueError:
+                print("ERROR: --subsample and --subsample-min must be integers.")
                 bail = True
 
         # Exit if any problems were encountered
         if bail:
+            print("Exiting.")
             return 1
 
         # /* ----------------------------------------------------------------------- */#
@@ -2691,6 +2697,7 @@ class NrcSpreadsheetScraper:
             connection.close()
         except psycopg2.OperationalError as e:
             error = "ERROR: Could not connect to database. See config connection_string: %s" % (e)
+            print(error)
             return 1
 
         # /* ----------------------------------------------------------------------- */#

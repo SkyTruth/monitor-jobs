@@ -26,9 +26,7 @@ class FlPollution:
         before_count = self.db.get_feedentry_count(self.source_id)["count"]
         # download_url = 'http://prodenv.dep.state.fl.us/DepPNP/reports/exportIncidents'
         download_url = "https://prodenv.dep.state.fl.us/DepPNP/export-incidents"
-        file_to_process = (
-            os.getcwd() + sep + "rawdata/export.xls"
-        )  # + self.name_current_file(basename(download_url))
+        file_to_process = "/tmp/export.xls"  # + self.name_current_file(basename(download_url))
         overwrite_downloaded_file = True
         download_file = True
 
