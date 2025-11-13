@@ -296,7 +296,7 @@ class PAPermits:
 
                     print("post_fields:", post_fields)
                     print(summary)
-                    url = settings.API_POST_FEEDENTRY
+                    url = config.API_POST_FEEDENTRY
                     response = requests.post(url, data=post_fields)
                     print(response.content)
 
