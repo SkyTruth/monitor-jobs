@@ -112,6 +112,9 @@ class PAPermits:
                 print("TimeoutException")
                 print(py_ex)
                 print(py_ex.args)
+            except Exception as ex:
+                print("Some other exception occurred:")
+                print(ex)
             finally:
                 driver.quit()
                 display.stop()

@@ -46,6 +46,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       bzip2 \
       unzip \
       firefox-esr \
+      xvfb \
     && rm -rf /var/lib/apt/lists/*
 
 # geckodriver
