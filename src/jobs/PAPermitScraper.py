@@ -20,7 +20,7 @@ class PAPermitScraper:
 
     def write_rawdata(self, rawdata):
         date_fmt = "%Y_%m_%d_%H:%M"
-        f = open("rawdata/pa_permits_" + datetime.today().strftime(date_fmt) + ".xml", "w")
+        f = open("/tmp/pa_permits_" + datetime.today().strftime(date_fmt) + ".xml", "w")
         f.write(rawdata)
 
     def parse_atom_field(self, field):
@@ -285,7 +285,7 @@ class PAPermitScraper:
             print("target_url:", self.target_url)
             response = requests.get(self.target_url)
             feed = ElementTree.XML(response.content)
-            self.write_rawdata(response.content)
+            self.write_rawdata(str(response.content))
 
             for entry in feed.findall("{http://www.w3.org/2005/Atom}entry"):
                 for field in entry:
