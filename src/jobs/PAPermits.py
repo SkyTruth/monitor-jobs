@@ -6,15 +6,9 @@ from os.path import *
 import uuid
 
 sys.path.insert(0, "../")
-import utils
-from database import NrcDatabase
+from src.utils.db import NrcDatabase
 
-try:
-    from bs4 import BeautifulSoup
-except ImportError:
-    from BeautifulSoup import (
-        BeautifulSoup,
-    )
+from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
@@ -23,7 +17,7 @@ from selenium.common.exceptions import NoAlertPresentException
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from pyvirtualdisplay.display import Display
-import settings
+from src.utils import config
 
 
 class PAPermits:
@@ -123,8 +117,7 @@ class PAPermits:
                 display.stop()
 
         except Exception as e:
-            utils.error_condition("PA DEP Permit", e, sys.exc_info())
-
+            print("PAPermits error:", str(e), flush=True)
         # Finish up
         for num, source_id in enumerate(self.source_ids, start=0):
             self.after_counts[num] = self.db.get_feedentry_count(source_id)["count"]
@@ -146,7 +139,6 @@ class PAPermits:
                 + " "
             )
         email_subj += ")"
-        utils.send_email(email_subj, email_subj)
 
     # @staticmethod
     def uuid3_str(self, namespace=uuid.NAMESPACE_URL, name=None):
@@ -381,23 +373,14 @@ class PAPermits:
                                     # print(summary)
                                     print("", flush=True)
                                     print(298, post_fields, flush=True)
-                                    url = settings.API_POST_FEEDENTRY
+                                    url = config.API_POST_FEEDENTRY
                                     response = requests.post(url, data=post_fields)
                                     print(response.content)
 
                             rowx += 1
 
         except Exception as e:
-            utils.error_condition("PA DEP Permit ", e, sys.exc_info())
-
-    def error_condition(error, details, exc_info=None, spill_num=0):
-        print(error, details, str(spill_num))
-        if exc_info:
-            print(exc_info)
-            # exc_type, exc_obj, exc_tb = exc_info()
-            # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            # print(exc_type, fname, exc_tb.tb_lineno)
-        utils.send_email("PA DEP Permit Scraper " + error, str(spill_num), details, exc_info)
+            print("process_page error:", str(e), flush=True)
 
 
 # /* ======================================================================= */#
