@@ -17,6 +17,7 @@ from selenium.common.exceptions import NoAlertPresentException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as cond
 from selenium.webdriver.support.ui import Select, WebDriverWait
+from selenium.webdriver.firefox.options import Options
 
 
 class PAPermits:
@@ -47,17 +48,29 @@ class PAPermits:
                 display = Display(visible=0, size=(800, 600))
                 display.start()
                 # Initialize a Firefox webdriver
-                profile = webdriver.FirefoxProfile()
-                profile.set_preference("browser.download.folderList", 2)  # custom location
-                profile.set_preference("browser.download.manager.showWhenStarting", False)
-                # profile.set_preference('browser.download.dir', '~/Documents/SkyTruth/alerts2scrapers/pa-scraper/rawdata')
+                # profile = webdriver.FirefoxProfile()
+                # profile.set_preference("browser.download.folderList", 2)  # custom location
+                # profile.set_preference("browser.download.manager.showWhenStarting", False)
+                # # profile.set_preference('browser.download.dir', '~/Documents/SkyTruth/alerts2scrapers/pa-scraper/rawdata')
                 cwd = os.getcwd()
                 print(cwd)
-                profile.set_preference("browser.download.dir", os.getcwd() + "/rawdata")
-                profile.set_preference("browser.helperApps.neverAsk.saveToDisk", "text/csv")
+                # profile.set_preference("browser.download.dir", os.getcwd() + "/rawdata")
+                # profile.set_preference("browser.helperApps.neverAsk.saveToDisk", "text/csv")
+
+                options = Options()
+                download_dir = os.path.join(os.getcwd(), "rawdata")
+                os.makedirs(download_dir, exist_ok=True)
+
+                options.set_preference("browser.download.folderList", 2)  # custom folder
+                options.set_preference("browser.download.manager.showWhenStarting", False)
+                options.set_preference("browser.download.dir", download_dir)
+                options.set_preference("browser.helperApps.neverAsk.saveToDisk", "text/csv")
+
+                # Initialize driver with options
+                driver = webdriver.Firefox(options=options)
 
                 # browser = webdriver.Firefox(profile)
-                driver = webdriver.Firefox(profile)
+                # driver = webdriver.Firefox(profile)
 
                 file_name = cwd + "/rawdata/OilGasCompliance.csv"
                 if os.path.exists(file_name):
@@ -76,20 +89,20 @@ class PAPermits:
                 # New URL as of July, 2023
                 driver.get("https://greenport.pa.gov/ReportExtracts/OG/OilComplianceReport")
                 print("dates:", self.start_date_string, self.today_string)
-                from_date = driver.find_element_by_id("InspDtfrm")
+                from_date = driver.find_element(By.ID, "InspDtfrm")
                 driver.execute_script(
                     "arguments[0].setAttribute('value', '" + self.start_date_string + "')",
                     from_date,
                 )
-                to_date = driver.find_element_by_id("InspDtto")
+                to_date = driver.find_element(By.ID, "InspDtto")
                 driver.execute_script(
                     "arguments[0].setAttribute('value', '" + self.today_string + "')",
                     to_date,
                 )
-                violations_only = Select(driver.find_element_by_id("Res_Vio_Only"))
+                violations_only = Select(driver.find_element(By.ID, "Res_Vio_Only"))
                 violations_only.select_by_value("Y")
 
-                search_form = driver.find_element_by_id("btnReport")
+                search_form = driver.find_element(By.ID, "btnReport")
                 search_form.click()
                 print("submit", datetime.now(tz=None))
                 # Wait as long as required, or maximum of 30 sec for alert to appear
@@ -113,7 +126,7 @@ class PAPermits:
                             line_count += 1
                     print(f"Processed {line_count} lines.")
 
-            except (NoAlertPresentException, TimeoutException) as py_ex:
+            except Exception as py_ex:
                 print("TimeoutException")
                 print(py_ex)
                 print(py_ex.args)

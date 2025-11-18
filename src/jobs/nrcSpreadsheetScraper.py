@@ -2484,11 +2484,11 @@ class NrcSpreadsheetScraper:
         # /* ----------------------------------------------------------------------- */#
 
         # Database
-        db_connection_string = None
-        db_host = config.DB_HOST  # 'localhost'
-        db_name = config.DB_DATABASE  # 'skytruth'
-        db_user = config.DB_USER  # getpass.getuser()
-        db_pass = config.DB_PASS  # ''
+        db_connection_string = config.DB_CONNECTION_STRING
+        # db_host = config.DB_HOST  # 'localhost'
+        # db_name = config.DB_DATABASE  # 'skytruth'
+        # db_user = config.DB_USER  # getpass.getuser()
+        # db_pass = config.DB_PASS  # ''
         db_write_mode = "INSERT INTO"
         db_seqnos_field = "reportnum"
         db_null_value = "NULL"
@@ -2501,8 +2501,11 @@ class NrcSpreadsheetScraper:
         now = datetime.now()
         current_year = datetime.strftime(now, "%y")
         download_url = f"https://nrc.uscg.mil/FOIAFiles/CY{current_year}.xlsx"
-        file_to_process = os.getcwd() + sep + name_current_file(basename(download_url))
-        print("This file is being used to process NRC data:", file_to_process)
+        file_to_process = "/tmp/" + name_current_file(basename(download_url))
+        print(
+            "This file is being used to process NRC data:",
+            name_current_file(basename(download_url)),
+        )
         overwrite_downloaded_file = False
         download_file = True
         process_subsample = None
@@ -2643,13 +2646,13 @@ class NrcSpreadsheetScraper:
         # /* ----------------------------------------------------------------------- */#
 
         # Database - must be done here in order to allow the user to overwrite the default credentials and config
-        if db_connection_string is None:
-            db_connection_string = "host='%s' dbname='%s' user='%s' password='%s'" % (
-                db_host,
-                db_name,
-                db_user,
-                db_pass,
-            )
+        # if db_connection_string is None:
+        #     db_connection_string = "host='%s' dbname='%s' user='%s' password='%s'" % (
+        #         db_host,
+        #         db_name,
+        #         db_user,
+        #         db_pass,
+        #     )
 
         # /* ----------------------------------------------------------------------- */#
         # /*     Validate parameters
@@ -2707,10 +2710,10 @@ class NrcSpreadsheetScraper:
         if download_file:
             print("Downloading: %s" % download_url)
             print("Target: %s" % file_to_process)
-            try:
-                download(download_url, file_to_process)
-            except urllib.error.HTTPError:
-                return 1
+            # try:
+            download(download_url, file_to_process)
+            # except urllib.error.HTTPError:
+            #     return 1
 
         # Prep workbook
         try:
@@ -2968,7 +2971,8 @@ class NrcSpreadsheetScraper:
                 # Done processing - update user
                 if print_progress:
                     print(" - Done")
-        except:
+        except Exception as e:
+            print("ERROR: Could not process workbook: %s" % (e))
             return 1
 
         # /* ----------------------------------------------------------------------- */#

@@ -53,18 +53,18 @@ class PAPermits:
                     "http://cedatareporting.pa.gov/Reportserver/Pages/ReportViewer.aspx?/Public/DEP/OG/SSRS/Spud_External_Data"
                 )
                 print("dates:", self.start_date_string, self.today_string)
-                from_date = driver.find_element_by_name("ReportViewerControl$ctl04$ctl03$txtValue")
+                from_date = driver.find_element(By.NAME, "ReportViewerControl$ctl04$ctl03$txtValue")
                 driver.execute_script(
                     "arguments[0].setAttribute('value', '" + self.start_date_string + "')",
                     from_date,
                 )
-                to_date = driver.find_element_by_name("ReportViewerControl$ctl04$ctl05$txtValue")
+                to_date = driver.find_element(By.NAME, "ReportViewerControl$ctl04$ctl05$txtValue")
                 driver.execute_script(
                     "arguments[0].setAttribute('value', '" + self.today_string + "')",
                     to_date,
                 )
                 print("submit")
-                search_form = driver.find_element_by_name("ReportViewerControl$ctl04$ctl00")
+                search_form = driver.find_element(By.NAME, "ReportViewerControl$ctl04$ctl00")
                 search_form.click()
                 # Wait as long as required, or maximum of 30 sec for alert to appear
                 WebDriverWait(driver, 30).until(
@@ -94,8 +94,8 @@ class PAPermits:
                     self.process_page(doc)
                     current_page += 1
                     if current_page <= total_pages:
-                        go_to_page = driver.find_element_by_id(
-                            "ReportViewerControl_ctl05_ctl00_CurrentPage"
+                        go_to_page = driver.find_element(
+                            By.ID, "ReportViewerControl_ctl05_ctl00_CurrentPage"
                         )
                         go_to_page.clear()
                         go_to_page.send_keys(str(current_page))
@@ -105,7 +105,6 @@ class PAPermits:
                                 (By.ID, "ReportViewerControl_ctl05_ctl00_CurrentPage")
                             )
                         )
-                        # go_to_page = driver.find_element_by_id('ReportViewerControl_ctl05_ctl00_CurrentPage')
                         doc = BeautifulSoup(driver.page_source, "html.parser")
 
             except (NoAlertPresentException, TimeoutException) as py_ex:

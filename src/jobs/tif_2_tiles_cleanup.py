@@ -12,7 +12,7 @@ class Tif2TilesCleanup:
     def main(self, args):
         try:
             # cleanup
-            self.remove_empty_logfiles()
+            # self.remove_empty_logfiles()
             self.remove_warpfiles()
             self.remove_tif_files("tif_files/*")
 
