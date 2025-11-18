@@ -1,5 +1,5 @@
 # ─── Stage 1: builder ───
-FROM python:3.10-slim-bookworm AS builder
+FROM python:3.12-slim AS builder
 
 ENV \
   POETRY_NO_INTERACTION=1 \
@@ -26,7 +26,7 @@ RUN poetry install --only main --no-root
 
 COPY src/ ./
 
-FROM python:3.10-slim-bookworm AS runtime
+FROM python:3.12-slim-bookworm AS runtime
 
 ENV \
   POETRY_NO_INTERACTION=1 \
@@ -56,7 +56,8 @@ RUN wget -qO- https://github.com/mozilla/geckodriver/releases/download/v${GECKOD
 
 WORKDIR /app
 
-COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
+# Python 3.12
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 COPY src/ ./src
 
