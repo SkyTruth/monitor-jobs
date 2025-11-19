@@ -7,6 +7,7 @@ authors = [
 ]
 readme = "README.md"
 requires-python = ">=3.10"
+# TODO: Once we finish testing and deploying jobs, let's pin these dependencies to their final versions.
 dependencies = [
     "requests >=2.32.3",
     "python-dateutil >=2.9.0.post0",
