@@ -4,13 +4,12 @@ import uuid
 from datetime import datetime
 from stat import *
 
-import config
+from src.utils import config
 import psycopg2
 
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
-import settings
-from items import NrcItem
+from src.utils.items import NrcItem
 from psycopg2.extras import RealDictCursor as DictCursor
 from scrapy import exceptions
 
@@ -66,7 +65,7 @@ def getNewAlertsForEmails(l, d, n, alerts2_last_published, aoiid, regionid, emai
         # print('')
         # print('email:', email)
         # print('sql:', sql)
-        conn = psycopg2.connect(config.ALERTS2_CONNECTION_STRING)
+        conn = psycopg2.connect(config.DB_CONNECTION_STRING)
         conn.set_client_encoding("UTF8")
         cur = conn.cursor()
         cur.execute(sql)
@@ -132,7 +131,7 @@ def read_subscriptions():
                         (rss.region_id IS NOT NULL AND (SELECT COUNT(*) FROM feedentry WHERE published>isub.alerts2_latest_published AND status='published' AND ST_Intersects(the_geom, reg.the_geom)) > 0)
             ORDER BY email
         """
-        conn = psycopg2.connect(config.ALERTS2_CONNECTION_STRING)
+        conn = psycopg2.connect(config.DB_CONNECTION_STRING)
         cur = conn.cursor()
         cur.execute(sql)
         subs = cur.fetchall()
@@ -157,7 +156,7 @@ def read_test_subscriptions(test_email):
                         WHERE rss.email='%s' AND confirmed=1 AND active=1 AND include_on_tab=true
                         AND rss.geom IS NOT NULL
             """ % (test_email)
-        conn = psycopg2.connect(config.ALERTS2_CONNECTION_STRING)
+        conn = psycopg2.connect(config.DB_CONNECTION_STRING)
         cur = conn.cursor()
         cur.execute(sql)
         subs = cur.fetchall()
@@ -176,7 +175,7 @@ def upd_rss_last_email_sent(aoiid, last_published):
     try:
         # self.db.updateEmailSubscription (sub['id'],
         #                     {'last_email_sent': format_datetime(datetime.now()), 'last_item_updated': msg_parts['last_item_updated']})
-        conn = psycopg2.connect(config.ALERTS2_CONNECTION_STRING)
+        conn = psycopg2.connect(config.DB_CONNECTION_STRING)
         cur = conn.cursor()
         sql = (
             'UPDATE "RSSEmailSubscription" SET alerts2_last_email_sent=now(), alerts2_latest_published='
@@ -210,7 +209,7 @@ def upd_issuesubscription_last_email_sent(is_id, last_published):
     try:
         # self.db.updateEmailSubscription (sub['id'],
         #                     {'last_email_sent': format_datetime(datetime.now()), 'last_item_updated': msg_parts['last_item_updated']})
-        conn = psycopg2.connect(config.ALERTS2_CONNECTION_STRING)
+        conn = psycopg2.connect(config.DB_CONNECTION_STRING)
         cur = conn.cursor()
         sql = (
             "UPDATE img_issuesubscriptions SET alerts2_last_email_sent=now(), alerts2_latest_published="
@@ -237,7 +236,7 @@ def get_next_uploaded_tiff():
     conn = None
     next_file = None
     try:
-        conn = psycopg2.connect(config.ALERTS2_CONNECTION_STRING)
+        conn = psycopg2.connect(config.DB_CONNECTION_STRING)
         cur = conn.cursor()
         cur.execute(
             """SELECT * FROM file_uploads WHERE status='uploaded' ORDER BY datetime_uploaded LIMIT 1"""
@@ -257,7 +256,7 @@ def get_file_upload(storage_file_path):
     file_upload = None
     # print(storage_file_path)
     try:
-        conn = psycopg2.connect(config.ALERTS2_CONNECTION_STRING)
+        conn = psycopg2.connect(config.DB_CONNECTION_STRING)
         cur = conn.cursor()
         sql = """SELECT * FROM file_uploads WHERE storage_file_path='%s' """ % (storage_file_path)
         # print('sql:', sql)
@@ -275,7 +274,7 @@ def get_file_upload(storage_file_path):
 def get_next_uploaded_tiff_missing_coords():
     conn = None
     try:
-        conn = psycopg2.connect(config.ALERTS2_CONNECTION_STRING)
+        conn = psycopg2.connect(config.DB_CONNECTION_STRING)
         cur = conn.cursor()
         cur.execute(
             """SELECT * FROM file_uploads WHERE status='convertedToTiles' AND latitude IS NULL ORDER BY datetime_uploaded LIMIT 1"""
@@ -294,7 +293,7 @@ def upd_file_upload(storage_file_path, status, message, latitude=None, longitude
     # print('upd_file_upload:', storage_file_path, status, message, latitude, longitude, flush=True)
     conn = None
     try:
-        conn = psycopg2.connect(config.ALERTS2_CONNECTION_STRING)
+        conn = psycopg2.connect(config.DB_CONNECTION_STRING)
         cur = conn.cursor()
         if latitude != None and latitude != "NULL" and longitude != None and longitude != "NULL":
             sql = """UPDATE file_uploads SET status=%s, message=%s, latitude=%s, longitude=%s WHERE storage_file_path=%s"""
@@ -326,7 +325,7 @@ def insert_file_upload(
     conn = None
     try:
         dt = datetime.now()
-        conn = psycopg2.connect(config.ALERTS2_CONNECTION_STRING)
+        conn = psycopg2.connect(config.DB_CONNECTION_STRING)
         cur = conn.cursor()
         # if latitude != None and latitude != "NULL" and longitude != None and longitude != "NULL":
         sql = """
@@ -383,11 +382,11 @@ class NrcDatabase:
 
     def __init__(self):
         print("NrcDatabase __init__")
-        self.db_connection_string = settings.DB_CONNECTION_STRING
-        self.host = settings.DB_HOST
-        self.user = settings.DB_USER
-        self.passwd = settings.DB_PASS
-        self.dbname = settings.DB_DATABASE
+        self.db_connection_string = config.DB_CONNECTION_STRING
+        self.host = config.DB_HOST
+        self.user = config.DB_USER
+        self.passwd = config.DB_PASS
+        self.dbname = config.DB_DATABASE
         self.db = None
         psycopg2.extras.register_uuid()
         self.table_keyfields = {}

@@ -1,0 +1,101 @@
+<html>
+<head>
+<title>{{ title }}</title>
+</head>
+<body>
+    <p>&nbsp;</p>
+    <table width="600" border="0" align="center" style="border: solid 1px #ddd; margin: 10px auto;">
+        <tbody>
+            <tr>
+                <td align="center" width="100%"><a href="https://skytruth.org">
+                    <img alt="If you can see it, you can change it" border="0" height="auto"
+                         src="https://skytruth.org/wp-content/uploads/2020/12/skytruth_email_header.jpg"
+                         style="display: block; border: none; outline: none; text-decoration: none; padding: 0; line-height: 0;" width="600" /></a>
+                </td>
+            </tr>
+            <tr>
+                <td align="center">
+                    <p><b><a style="color: #009da7;" href="https://alerts.skytruth.org/" target="_blank">SkyTruth Alerts</a></b> has detected new reports in AOI <br/><b>{{ aoidescr }}</b>:</p>
+                </td>
+            </tr>
+            {% if mapurl > '' %}
+            <tr>
+                <td align="center">
+                    <img style="width: 500px; max-width: 100%; height: 215px; border: solid 1px #ddd; margin: auto;" src="{{ mapurl}}"  /></td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td align="center"><a style="color: #009da7;" href="https://alerts.skytruth.org/aoi/{{ subscription_id }}">View Area of Interest on the SkyTruth Alerts map</a></td>
+            </tr>
+            <tr>
+                <td><hr style="border: none; border-top: 1px solid #ddd; color: #ddd; overflow: visible; text-align: center; height: 5px; width: 580px;"></td>
+            </tr>
+
+            {% if count > 99 %}
+            <tr>
+                <td>
+                <div style="border:1px solid; padding:8px; margin:8px;">
+                    This email contains the maximum of 100 alerts for an Area of Interest. To see all alerts,
+                    <a style="color: #009da7;" href="https://alerts.skytruth.org/aoi/{{ subscription_id }}">visit this area on the SkyTruth Alerts map</a>
+                    and zoom into a smaller part of the map. You might also consider creating several smaller AOIs, each of which can contain
+                    100 alerts in future emails.
+                </div>
+                </td></tr>
+            {% endif %}
+            {% for feedentry in fes %}
+            <tr>
+                <td style="padding: 0 50px;"><b><a style="color: #009da7;" href="https://alerts.skytruth.org/report/{{feedentry[0]}}sub{{ subscription_id }}">{{ feedentry[1] }}</a></b></td>
+            </tr>
+            <tr>
+                <td style="padding: 0 50px;"><b>Description:</b> {{ feedentry[2] }}</td>
+            </tr>
+            <tr>
+            <tr>
+                <td style="padding: 0 50px;"><b>Incident Date/Time:</b> {{ feedentry[3] }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 0 50px;"><b>Tags:</b> {{ feedentry[5] }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 0 50px;">&nbsp;</td>
+            </tr>
+
+            {% endfor %}
+            <tr>
+                <td style="background-color: #001331;">
+                    <table border="0">
+                        <tr>
+                            <td align="center">
+                            <table align="center" border="0" cellpadding="10" cellspacing="0" width="600">
+                                <tbody>
+                                    <tr valign="top">
+                                        <td width="290">
+                                            <div style="color: #ffffff !important;">SkyTruth</div>
+                                            <div style="color: #ffffff !important;">P.O. Box 3283</div>
+                                            <div style="color: #ffffff !important;">Shepherdstown, WV 25443</div>
+                                            <div style="color: #ffffff !important;"><a style="color: #ffffff; text-decoration: none;" href="mailto:info@skytruth.org">info@skytruth.org</a></div>
+                                            <div style="color: #ffffff !important;"><a style="color: #ffffff; text-decoration: none;" href="tel:1-304-885-4581">+1 (304) 885-4581</div></td>
+                                        <td width="290" align="right">
+                                            <!-- Note to future selves: the code below must stay as one line or link underlines get created between the icons -->
+                                            <a href="https://facebook.com/skytruth" target="_blank"><img alt="" border="0" height="22" src="https://skytruth.org/wp-content/uploads/2017/11/facebook.png" width="22" /></a>&nbsp;<a href="https://twitter.com/skytruth" target="_blank"><img alt="" border="0" height="22" src="https://www.skytruth.org/wp-content/uploads/2017/11/twitter.png" width="22" /></a>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div style="color: #ffffff !important;">
+                                                <a href="https://alerts.skytruth.org/unsubscribe/{{ subscription_id }}"
+                                                   style="color:#ffffff !important" target="_blank">Unsubscribe from this area of interest</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</body>
+</html>

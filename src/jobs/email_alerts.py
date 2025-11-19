@@ -6,13 +6,13 @@ from email.mime.text import MIMEText
 from smtplib import SMTP  # sending email
 from urllib.parse import parse_qs, urlparse
 
-import config
-import db
-from config import ALERTS2_API_URL
+from src.utils import config
+from src.utils import db
+from src.utils.config import ALERTS2_API_URL
 from jinja2 import Environment  # Jinja2 templating
 
 # open the file
-filein = open("templates/index.html")
+filein = open("src/templates/index.html")
 # read it
 TEMPLATE = filein.read()
 

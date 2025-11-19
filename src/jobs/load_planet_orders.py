@@ -1,6 +1,6 @@
 import sys
 
-import config
+from src.utils import config
 import psycopg2
 import requests
 
@@ -57,7 +57,7 @@ def putOrder(id, name, created_on, last_message, scene_id, item_type, product_bu
     # conn = psycopg2.connect(
     #     database="alerts2", user="postgres", password=pw, host=unix_socket)
     # Next line is for running locally
-    conn = psycopg2.connect(config.ALERTS2_CONNECTION_STRING)
+    conn = psycopg2.connect(config.DB_CONNECTION_STRING)
     ###########################################
     id = None
     with conn.cursor() as cursor:
@@ -84,7 +84,7 @@ def getScene(scene_id):
     # conn = psycopg2.connect(
     #     database="alerts2", user="postgres", password=pw, host=unix_socket)
     # Next line is for running locally
-    conn = psycopg2.connect(config.ALERTS2_CONNECTION_STRING)
+    conn = psycopg2.connect(config.DB_CONNECTION_STRING)
     ###########################################
     row = None
     with conn.cursor() as cursor:

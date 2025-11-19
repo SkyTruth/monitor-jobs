@@ -39,7 +39,6 @@ Sample command:
     ./bin/nrcSpreadsheetScraper.py --db-name test_skytruth --db-user `whoami` --db-host localhost
 """
 
-
 import os
 import re
 import sys
@@ -50,8 +49,9 @@ from os.path import *
 import psycopg2
 import requests
 import xlrd
-from database import NrcDatabase
-from items import BotTaskError, FeedEntryTag, NrcTag
+from src.utils import config
+from src.utils.db import NrcDatabase
+from src.utils.items import BotTaskError, FeedEntryTag, NrcTag
 from scrapy.loader import ItemLoader
 from scrapy.selector import Selector
 
@@ -2485,10 +2485,10 @@ class NrcSpreadsheetScraper:
 
         # Database
         db_connection_string = None
-        db_host = settings.DB_HOST  # 'localhost'
-        db_name = settings.DB_DATABASE  # 'skytruth'
-        db_user = settings.DB_USER  # getpass.getuser()
-        db_pass = settings.DB_PASS  # ''
+        db_host = config.DB_HOST  # 'localhost'
+        db_name = config.DB_DATABASE  # 'skytruth'
+        db_user = config.DB_USER  # getpass.getuser()
+        db_pass = config.DB_PASS  # ''
         db_write_mode = "INSERT INTO"
         db_seqnos_field = "reportnum"
         db_null_value = "NULL"
@@ -2502,12 +2502,13 @@ class NrcSpreadsheetScraper:
         current_year = datetime.strftime(now, "%y")
         download_url = f"https://nrc.uscg.mil/FOIAFiles/CY{current_year}.xlsx"
         file_to_process = os.getcwd() + sep + name_current_file(basename(download_url))
+        print("This file is being used to process NRC data:", file_to_process)
         overwrite_downloaded_file = False
         download_file = True
         process_subsample = None
         process_subsample_min = 0
 
-        # User feedback settings
+        # User feedback config
         print_progress = True
         print_queries = False
         execute_queries = True
@@ -2641,7 +2642,7 @@ class NrcSpreadsheetScraper:
         # /*     Adjust options
         # /* ----------------------------------------------------------------------- */#
 
-        # Database - must be done here in order to allow the user to overwrite the default credentials and settings
+        # Database - must be done here in order to allow the user to overwrite the default credentials and config
         if db_connection_string is None:
             db_connection_string = "host='%s' dbname='%s' user='%s' password='%s'" % (
                 db_host,
@@ -2658,14 +2659,17 @@ class NrcSpreadsheetScraper:
 
         # Make sure arguments were properly parse
         if arg_error:
+            print("ERROR: Invalid argument(s) detected.")
             bail = True
 
         # Make sure the downloaded file is not going to be accidentally deleted
         if download_file and not overwrite_downloaded_file and isfile(file_to_process):
+            print("ERROR: Target file already exists. Use --overwrite-download to overwrite.")
             bail = True
 
         # Make sure the user has write permission to the target directory
         if not os.access(dirname(file_to_process), os.W_OK):
+            print("ERROR: No write permission to target directory.")
             bail = True
 
         # Handle subsample
@@ -2674,10 +2678,12 @@ class NrcSpreadsheetScraper:
                 process_subsample = int(process_subsample)
                 process_subsample_min = int(process_subsample_min)
             except ValueError:
+                print("ERROR: --subsample and --subsample-min must be integers.")
                 bail = True
 
         # Exit if any problems were encountered
         if bail:
+            print("Exiting.")
             return 1
 
         # /* ----------------------------------------------------------------------- */#
@@ -2690,7 +2696,8 @@ class NrcSpreadsheetScraper:
             connection = psycopg2.connect(db_connection_string)
             connection.close()
         except psycopg2.OperationalError as e:
-            error = "ERROR: Could not connect to database. See settings connection_string: %s" % (e)
+            error = "ERROR: Could not connect to database. See config connection_string: %s" % (e)
+            print(error)
             return 1
 
         # /* ----------------------------------------------------------------------- */#
@@ -3291,7 +3298,7 @@ class NrcSpreadsheetScraper:
                     "bot_reportnum_done": task_id,
                 }
                 print(post_fields, flush=True)
-                url = settings.API_POST_FEEDENTRY
+                url = config.API_POST_FEEDENTRY
                 # comment out post routine until date bug fixed
                 response = requests.post(url, data=post_fields)
                 response_status = str(response.content, "utf-8")

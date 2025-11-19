@@ -1,0 +1,100 @@
+<html lang="en">
+<head>
+<title>{{ title }}</title>
+</head>
+<body>
+    <p>&nbsp;</p>
+    <table width="600" border="0" align="center" style="border: solid 1px #d9d9d9; margin: 10px auto;">
+        <tbody>
+            <tr>
+                <td align="center" width="100%"><a href="https://skytruth.org">
+                    <img alt="If you can see it, you can change it" border="0" height="auto"
+                         src="https://skytruth.org/wp-content/uploads/2024/09/email_header.jpg"
+                         style="display: block; border: none; outline: none; text-decoration: none; padding: 0; line-height: 0;" width="600" /></a>
+                </td>
+            </tr>
+            <tr>
+                <td align="center">
+                    <p><b><a style="color: #44e4ee;" href="https://monitor.skytruth.org/" target="_blank">SkyTruth Monitor</a></b> has detected new reports in AOI <br/><b>{{ aoidescr }}</b>:</p>
+                </td>
+            </tr>
+            {% if mapurl > '' %}
+            <tr>
+                <td align="center">
+                    <img style="width: 500px; max-width: 100%; height: 215px; border: solid 1px #d9d9d9; margin: auto;" src="{{ mapurl }}" alt="Map of {{ aoidescr }}" /></td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td align="center"><a style="color: #44e4ee;" href="https://monitor.skytruth.org/aoi/{{ subscription_id }}">View Area of Interest on the SkyTruth Monitor map</a></td>
+            </tr>
+            <tr>
+                <td><hr style="border: none; border-top: 1px solid #d9d9d9; color: #d9d9d9; overflow: visible; text-align: center; height: 5px; width: 580px;"></td>
+            </tr>
+
+            {% if count > 99 %}
+            <tr>
+                <td>
+                <div style="border:1px solid; padding:8px; margin:8px;">
+                    This email contains a maximum of 100 Alerts for this Area of Interest (AOI). To see all Alerts,
+                    <a style="color: #44e4ee;" href="https://monitor.skytruth.org/aoi/{{ subscription_id }}">visit this area on the SkyTruth Monitor map</a>
+                    and zoom in to view a smaller area of the map. You can also create several smaller AOIs, each of which can contain
+                    up to 100 Alerts in future emails.
+                </div>
+                </td></tr>
+            {% endif %}
+            {% for feedentry in fes %}
+            <tr>
+                <td style="padding: 0 50px;"><b><a style="color: #44e4ee;" href="https://monitor.skytruth.org/report/{{feedentry[0]}}sub{{ subscription_id }}">{{ feedentry[1] }}</a></b></td>
+            </tr>
+            <tr>
+                <td style="padding: 0 50px;"><b>Description:</b> {{ feedentry[2] }}</td>
+            </tr>
+            <tr>
+            <tr>
+                <td style="padding: 0 50px;"><b>Incident Date/Time:</b> {{ feedentry[3] }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 0 50px;"><b>Tags:</b> {{ feedentry[5] }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 0 50px;">&nbsp;</td>
+            </tr>
+
+            {% endfor %}
+            <tr>
+                <td style="background-color: #000000;">
+                    <table border="0">
+                        <tr>
+                            <td align="center">
+                            <table align="center" border="0" cellpadding="10" cellspacing="0" width="600">
+                                <tbody>
+                                    <tr valign="top">
+                                        <td width="290">
+                                            <div style="color: #ffffff !important;">SkyTruth</div>
+                                            <div style="color: #ffffff !important;">P.O. Box 3283</div>
+                                            <div style="color: #ffffff !important;">Shepherdstown, WV 25443</div>
+                                            <div style="color: #ffffff !important;"><a style="color: #ffffff; text-decoration: none;" href="mailto:hello@skytruth.org">hello@skytruth.org</a></div>
+                                            <div style="color: #ffffff !important;"><a style="color: #ffffff; text-decoration: none;" href="tel:1-304-885-4581">+1 (304) 885-4581</div></td>
+                                        <td width="290" align="right">
+                                            <a style="color: #ffffff !important;" href="https://skytruth.org/monitor">About Monitor</a><br><a style="color: #ffffff !important;" href="https://skytruth.org/section/account-settings/">How-To Guide</a>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div style="color: #ffffff !important;">
+                                                <a href="https://monitor.skytruth.org/unsubscribe/{{ subscription_id }}"
+                                                   style="color:#ffffff !important" target="_blank">Unsubscribe from this area of interest</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</body>
+</html>
