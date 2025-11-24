@@ -19,7 +19,7 @@ steps:
       - "-t"
       - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:latest"
       - "--build-arg"
-      - "ENVIRONMENT=PROD"   # <-- ADD THIS
+      - "ENVIRONMENT=PROD" 
       - "."
 
   - name: gcr.io/cloud-builders/docker
