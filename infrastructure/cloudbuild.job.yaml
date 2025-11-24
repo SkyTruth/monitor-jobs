@@ -14,8 +14,6 @@ substitutions:
 options:
   logging: CLOUD_LOGGING_ONLY
   substitutionOption: 'ALLOW_LOOSE'
-beta_settings:
-  cloud_sql_instances: skytruth-alerts2:us-east1:alerts12pg-clone
 steps:
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     entrypoint: bash
@@ -34,6 +32,7 @@ steps:
             --task-timeout="${_TIMEOUT}" \
             --command python \
             --args="-m,${_JOB_PATH}"
+            --add-cloudsql-instances=skytruth-alerts2:us-east1:alerts12pg-clone \
         else
           echo "Creating job ${_JOB_NAME}"
           gcloud run jobs create "${_JOB_NAME}" \
@@ -44,4 +43,5 @@ steps:
             --memory=${_MEMORY}
             --command python \
             --args="-m,${_JOB_PATH}"
+            --add-cloudsql-instances=skytruth-alerts2:us-east1:alerts12pg-clone \
         fi
