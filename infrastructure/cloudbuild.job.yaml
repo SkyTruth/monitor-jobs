@@ -10,6 +10,7 @@ substitutions:
   _IMAGE_NAME: jobs
   _TAG: latest
   _TIMEOUT: 1800s
+  _DB_INSTANCE: alerts12pg-clone
 
 options:
   logging: CLOUD_LOGGING_ONLY
@@ -31,17 +32,17 @@ steps:
             --region "${_REGION}" \
             --task-timeout="${_TIMEOUT}" \
             --command python \
-            --args="-m,${_JOB_PATH}"
-            --add-cloudsql-instances=skytruth-alerts2:us-east1:alerts12pg-clone \
+            --args="-m,${_JOB_PATH}" \
+            --add-cloudsql-instances="${PROJECT_ID}:${_REGION}:${_DB_INSTANCE}"
         else
           echo "Creating job ${_JOB_NAME}"
           gcloud run jobs create "${_JOB_NAME}" \
             --image "$$IMAGE" \
             --region "${_REGION}" \
             --task-timeout="${_TIMEOUT}" \
-            --cpu=${_CPU}
-            --memory=${_MEMORY}
+            --cpu=${_CPU} \
+            --memory=${_MEMORY} \
             --command python \
-            --args="-m,${_JOB_PATH}"
-            --add-cloudsql-instances=skytruth-alerts2:us-east1:alerts12pg-clone \
+            --args="-m,${_JOB_PATH}" \
+            --add-cloudsql-instances="${PROJECT_ID}:${_REGION}:${_DB_INSTANCE}"
         fi

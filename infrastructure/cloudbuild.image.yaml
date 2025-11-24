@@ -17,6 +17,8 @@ steps:
       - "-t"
       - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:${_COMMIT_SHA}"
       - "-t"
+      - "--build-arg"
+      - "ENVIRONMENT=PROD" 
       - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:latest"
       - "--build-arg"
       - "ENVIRONMENT=PROD" 
