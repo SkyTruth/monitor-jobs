@@ -14,8 +14,6 @@ substitutions:
 options:
   logging: CLOUD_LOGGING_ONLY
   substitutionOption: 'ALLOW_LOOSE'
-beta_settings:
-  cloud_sql_instances: skytruth-alerts2:us-east1:alerts12pg-clone
 steps:
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     entrypoint: bash
