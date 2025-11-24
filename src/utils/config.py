@@ -22,8 +22,8 @@ if ENVIRONMENT == "DEV":
     # DB_HOST = "34.75.201.96"  # Prod DB local connect
     DB_HOST = "35.190.140.113"  # Clone DB local connect
 elif ENVIRONMENT == "PROD":
-    # DB_HOST = "skytruth-alerts2:us-east1:alerts12pg"  # Socket for prod DB
-    DB_HOST = "skytruth-alerts2:us-east1:alerts12pg-clone"  # Socket for clone DB
+    # DB_HOST = "/cloudsql/skytruth-alerts2:us-east1:alerts12pg"  # Socket for prod DB
+    DB_HOST = "/cloudsql/skytruth-alerts2:us-east1:alerts12pg-clone"  # Socket for clone DB
 DB_USER = "postgres"
 DB_PASS = common.access_secret_version("skytruth-alerts2", "ALERTS2_PASSWORD", "latest")
 DB_DATABASE = "alerts2"
