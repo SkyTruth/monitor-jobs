@@ -33,7 +33,7 @@ steps:
             --task-timeout="${_TIMEOUT}" \
             --command python \
             --args="-m,${_JOB_PATH}" \
-            --add-cloudsql-instances="${PROJECT_ID}:${_REGION}:${_DB_INSTANCE}"
+            --set-cloudsql-instances="${PROJECT_ID}:${_REGION}:${_DB_INSTANCE}"
         else
           echo "Creating job ${_JOB_NAME}"
           gcloud run jobs create "${_JOB_NAME}" \
@@ -44,5 +44,5 @@ steps:
             --memory=${_MEMORY} \
             --command python \
             --args="-m,${_JOB_PATH}" \
-            --add-cloudsql-instances="${PROJECT_ID}:${_REGION}:${_DB_INSTANCE}"
+            --set-cloudsql-instances="${PROJECT_ID}:${_REGION}:${_DB_INSTANCE}"
         fi
