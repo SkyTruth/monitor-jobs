@@ -1,5 +1,5 @@
 # ─── Stage 1: builder ───
-FROM python:3.12-slim AS builder
+FROM python:3.12-slim-bookworm AS builder
 
 ENV \
   POETRY_NO_INTERACTION=1 \
