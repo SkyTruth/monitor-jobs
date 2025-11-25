@@ -63,5 +63,5 @@ jobs:
     with:
       job_name: florida-pollution-scraper
       scheduler_name: run-florida-pollution-scraper
-      schedule: "1 * * * *"  #Every hour
+      schedule: "55 2 * * *"  #Every day at 2:55am
       
