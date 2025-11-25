@@ -64,4 +64,20 @@ jobs:
       job_name: florida-pollution-scraper
       scheduler_name: run-florida-pollution-scraper
       schedule: "55 2 * * *"  #Every day at 2:55am
+
+  deploy-pa-permits:
+    needs: build-and-push-docker
+    uses: ./.github/workflows/deploy-job.yaml
+    with:
+      job_name: "pa-permits"
+      job_path: "src.jobs.PAPermits"
+
+  
+  deploy-pa-permits-scheduler:
+    needs: [build-and-push-docker, deploy-pa-permits]
+    uses: ./.github/workflows/deploy-scheduler.yaml
+    with:
+      job_name: pa-permits
+      scheduler_name: run-pa-permits
+      schedule: "10 */6 * * *"  #Minute 10, every 6 hours
       
