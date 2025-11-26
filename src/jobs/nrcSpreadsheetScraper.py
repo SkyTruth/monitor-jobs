@@ -2485,10 +2485,6 @@ class NrcSpreadsheetScraper:
 
         # Database
         db_connection_string = config.DB_CONNECTION_STRING
-        # db_host = config.DB_HOST  # 'localhost'
-        # db_name = config.DB_DATABASE  # 'skytruth'
-        # db_user = config.DB_USER  # getpass.getuser()
-        # db_pass = config.DB_PASS  # ''
         db_write_mode = "INSERT INTO"
         db_seqnos_field = "reportnum"
         db_null_value = "NULL"
@@ -2642,19 +2638,6 @@ class NrcSpreadsheetScraper:
                 arg_error = True
 
         # /* ----------------------------------------------------------------------- */#
-        # /*     Adjust options
-        # /* ----------------------------------------------------------------------- */#
-
-        # Database - must be done here in order to allow the user to overwrite the default credentials and config
-        # if db_connection_string is None:
-        #     db_connection_string = "host='%s' dbname='%s' user='%s' password='%s'" % (
-        #         db_host,
-        #         db_name,
-        #         db_user,
-        #         db_pass,
-        #     )
-
-        # /* ----------------------------------------------------------------------- */#
         # /*     Validate parameters
         # /* ----------------------------------------------------------------------- */#
 
@@ -2710,10 +2693,7 @@ class NrcSpreadsheetScraper:
         if download_file:
             print("Downloading: %s" % download_url)
             print("Target: %s" % file_to_process)
-            # try:
             download(download_url, file_to_process)
-            # except urllib.error.HTTPError:
-            #     return 1
 
         # Prep workbook
         try:
