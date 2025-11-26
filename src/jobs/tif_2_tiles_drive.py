@@ -3,24 +3,18 @@ import os
 import subprocess
 import sys
 
-# import gdal2tiles
 from src.utils import db
 import rasterio
 import rasterio.warp
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 
-# from oauth2client.service_account import ServiceAccountCredentials
 from google.oauth2.service_account import Credentials
 from rasterio.crs import CRS
 
 
 class Tif2Tiles:
     # email = None
-    # scope = ["https://www.googleapis.com/auth/drive.readonly"]
-    # credentials = ServiceAccountCredentials.from_json_keyfile_name("/tmp/sa.json", scope)
-    # # https://developers.google.com/drive/api/v3/quickstart/python
-    # service = build("drive", "v3", credentials=credentials)
     scopes = ["https://www.googleapis.com/auth/drive.readonly"]
     creds = Credentials.from_service_account_file("/tmp/sa.json", scopes=scopes)
     service = build("drive", "v3", credentials=creds)
