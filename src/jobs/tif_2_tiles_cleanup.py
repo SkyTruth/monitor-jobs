@@ -12,21 +12,11 @@ class Tif2TilesCleanup:
     def main(self, args):
         try:
             # cleanup
-            # self.remove_empty_logfiles()
             self.remove_warpfiles()
             self.remove_tif_files("tif_files/*")
 
         except Exception as e:
             print("tif_2_tiles_cleanup error:", str(e), flush=True)
-
-    def remove_empty_logfiles(self):
-        try:
-            cmd = "find logs/tif_2_tiles -name '*' -size 0 -print0 | xargs -0 rm"
-            os.system(cmd)
-        except Exception as e:
-            # Don't error out, just print the error
-            # self.error("cleanup", "error in cleanup", str(e))
-            print("error in cleanup", str(e), flush=True)
 
     def remove_warpfiles(self):
         try:
