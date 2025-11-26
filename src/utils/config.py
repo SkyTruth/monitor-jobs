@@ -14,10 +14,6 @@ MANDRILL_PORT = 587
 MANDRILL_PASS = common.access_secret_version("skytruth-alerts2", "MANDRILL_PASS", "latest")
 
 ALERTS2_API_URL = "https://skytruth-alerts2.appspot.com/api/"
-# DB_CONNECTION_STRING = common.access_secret_version(
-#     "skytruth-alerts2", "DB_CONNECTION_STRING_DEV", "latest"
-# )
-
 if ENVIRONMENT == "DEV":
     # DB_HOST = "34.75.201.96"  # Prod DB local connect
     DB_HOST = "35.190.140.113"  # Clone DB local connect
@@ -33,10 +29,7 @@ DB_CONNECTION_STRING = (
 )
 # API URL
 # PRODUCTION
-# API_POST_FEEDENTRY = "https://skytruth-alerts2.appspot.com/api/api_post_feedentry/" # production
-# API_POST_FEEDENTRY = "http://host.docker.internal:8000/api/api_post_feedentry/" local dev
+# API_POST_FEEDENTRY = "https://skytruth-alerts2.appspot.com/api/api_post_feedentry/" # PROD DB
 API_POST_FEEDENTRY = (
     "https://dev-dot-skytruth-alerts2.ue.r.appspot.com/api/api_post_feedentry/"  # clone DB
 )
-# GMAIL_FROM = "alerts@skytruth.org"  # scraper from user
-# GMAIL_USER = "data@skytruth.org"  # scraper email user
