@@ -48,14 +48,8 @@ class PAPermits:
                 display = Display(visible=0, size=(800, 600))
                 display.start()
                 # Initialize a Firefox webdriver
-                # profile = webdriver.FirefoxProfile()
-                # profile.set_preference("browser.download.folderList", 2)  # custom location
-                # profile.set_preference("browser.download.manager.showWhenStarting", False)
-                # # profile.set_preference('browser.download.dir', '~/Documents/SkyTruth/alerts2scrapers/pa-scraper/rawdata')
                 cwd = os.getcwd()
                 print(cwd)
-                # profile.set_preference("browser.download.dir", os.getcwd() + "/rawdata")
-                # profile.set_preference("browser.helperApps.neverAsk.saveToDisk", "text/csv")
 
                 options = Options()
                 download_dir = os.path.join(os.getcwd(), "rawdata")
@@ -68,9 +62,6 @@ class PAPermits:
 
                 # Initialize driver with options
                 driver = webdriver.Firefox(options=options)
-
-                # browser = webdriver.Firefox(profile)
-                # driver = webdriver.Firefox(profile)
 
                 file_name = cwd + "/rawdata/OilGasCompliance.csv"
                 if os.path.exists(file_name):
@@ -85,7 +76,6 @@ class PAPermits:
                 # driver.implicitly_wait(30)  # seconds
                 print("getting driver")
                 # Grab the web page
-                # driver.get("https://www.depgreenport.state.pa.us/ReportExtracts/OG/OilComplianceReport")
                 # New URL as of July, 2023
                 driver.get("https://greenport.pa.gov/ReportExtracts/OG/OilComplianceReport")
                 print("dates:", self.start_date_string, self.today_string)
