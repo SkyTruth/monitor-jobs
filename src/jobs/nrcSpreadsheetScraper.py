@@ -2693,7 +2693,11 @@ class NrcSpreadsheetScraper:
         if download_file:
             print("Downloading: %s" % download_url)
             print("Target: %s" % file_to_process)
-            download(download_url, file_to_process)
+            try:
+                download(download_url, file_to_process)
+            except Exception as e:
+                print("ERROR: Could not download file: %s" % str(e))
+                raise
 
         # Prep workbook
         try:
