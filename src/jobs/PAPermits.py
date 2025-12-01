@@ -16,8 +16,8 @@ from selenium.webdriver.support import expected_conditions as cond
 from selenium.common.exceptions import NoAlertPresentException
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
-from pyvirtualdisplay.display import Display
 from src.utils import config
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
 
 
 class PAPermits:
@@ -44,13 +44,13 @@ class PAPermits:
                 self.before_counts[num] = self.db.get_feedentry_count(source_id)["count"]
 
             try:
-                display = Display(visible=0, size=(800, 600))
-                display.start()
                 # Initialize a Firefox webdriver
-                driver = webdriver.Firefox()
-                # driver.implicitly_wait(30)  # seconds
+                options = FirefoxOptions()
+                options.add_argument("--headless")
+                options.add_argument("--no-sandbox")
+                options.add_argument("--disable-gpu")
+                driver = webdriver.Firefox(options=options)
                 print("getting driver")
-                # Grab the web page
                 driver.get(
                     "http://cedatareporting.pa.gov/Reportserver/Pages/ReportViewer.aspx?/Public/DEP/OG/SSRS/Permits_Issued_Detail"
                 )
@@ -115,7 +115,6 @@ class PAPermits:
                 raise
             finally:
                 driver.quit()
-                display.stop()
 
         except Exception as e:
             print("PAPermits error:", str(e), flush=True)
