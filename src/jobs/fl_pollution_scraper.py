@@ -24,9 +24,8 @@ class FlPollution:
 
     def main(self, args):
         before_count = self.db.get_feedentry_count(self.source_id)["count"]
-        # download_url = 'http://prodenv.dep.state.fl.us/DepPNP/reports/exportIncidents'
         download_url = "https://prodenv.dep.state.fl.us/DepPNP/export-incidents"
-        file_to_process = "/tmp/export.xls"  # + self.name_current_file(basename(download_url))
+        file_to_process = "/tmp/export.xls"
         overwrite_downloaded_file = True
         download_file = True
 
@@ -50,7 +49,6 @@ class FlPollution:
             sheet_names = workbook.sheet_names()
             print("Sheet Names", sheet_names)
             incidents = workbook.sheet_by_name(sheet_names[0])
-            num_cols = incidents.ncols  # Number of columns
             for row_idx in range(0, incidents.nrows):  # Iterate through rows
                 # print('Row: %s' % row_idx)  # Print row number
                 if row_idx > 0:  # and row_idx < 5:
@@ -60,34 +58,17 @@ class FlPollution:
                     Report_Date_Time = incidents.cell(row_idx, 3).value
                     Facility_Name = incidents.cell(row_idx, 4).value
                     Facility_Address = incidents.cell(row_idx, 5).value
-                    Facility_Directions = incidents.cell(row_idx, 6).value
-                    Reporter_Name = incidents.cell(row_idx, 7).value
-                    Reporter_Title = incidents.cell(row_idx, 8).value
-                    Reporter_Email = incidents.cell(row_idx, 9).value
-                    Reporter_Phone = incidents.cell(row_idx, 10).value
-                    Reporter_Phone_Extension = incidents.cell(row_idx, 11).value
-                    Reporter_Role = incidents.cell(row_idx, 12).value
-                    Contact_Phone = incidents.cell(row_idx, 14).value
-                    Contact_Phone_Extension = incidents.cell(row_idx, 15).value
-                    Contact_Email = incidents.cell(row_idx, 16).value
                     Release_Start_Date_Time = incidents.cell(row_idx, 17).value
-                    Release_End_Date_Time = incidents.cell(row_idx, 18).value
                     Affected_Counties = incidents.cell(row_idx, 19).value
-                    Migrated_Counties = incidents.cell(row_idx, 20).value
-                    Migrated_Offsite = incidents.cell(row_idx, 21).value
                     latitude = incidents.cell(row_idx, 22).value
                     longitude = incidents.cell(row_idx, 23).value
                     Map_Direct_Link = incidents.cell(row_idx, 24).value
-                    # print('year:', self.year, str(SWO_Incident_Number), str(SWO_Incident_Number)[0:4] == self.year, flush=True )
-                    # The max value for an integer in Postgres is 2147483647
                     if str(SWO_Incident_Number)[0:4] == self.year:
-                        # print(str(SWO_Incident_Number), latitude, longitude, flush=True)
                         try:
                             if (
                                 self.db.getSourceItemIdCount(self.source_id, SWO_Incident_Number)
                                 > 0
                             ):
-                                # print(str(SWO_Incident_Number), 'already on file')
                                 pass
                             elif str(latitude) > "" and str(longitude) > "":
                                 print(
