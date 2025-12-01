@@ -27,6 +27,8 @@ RUN poetry install --only main --no-root
 COPY src/ ./
 
 FROM python:3.12-slim-bookworm AS runtime
+ARG ENVIRONMENT=DEV
+ENV ENVIRONMENT=${ENVIRONMENT}
 
 ENV \
   POETRY_NO_INTERACTION=1 \

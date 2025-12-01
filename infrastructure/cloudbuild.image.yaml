@@ -14,6 +14,8 @@ steps:
     id: "Build"
     args:
       - "build"
+      - "--build-arg"
+      - "ENVIRONMENT=PROD" 
       - "-t"
       - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:${_COMMIT_SHA}"
       - "-t"

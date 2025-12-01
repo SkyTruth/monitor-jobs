@@ -3,24 +3,21 @@ import os
 import subprocess
 import sys
 
-# import gdal2tiles
 from src.utils import db
 import rasterio
 import rasterio.warp
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
-from oauth2client.service_account import ServiceAccountCredentials
+
+from google.oauth2.service_account import Credentials
 from rasterio.crs import CRS
 
 
 class Tif2Tiles:
     # email = None
-    scope = ["https://www.googleapis.com/auth/drive.readonly"]
-    credentials = ServiceAccountCredentials.from_json_keyfile_name(
-        "skytruth-alerts2-e3be1fb35d2b.json", scope
-    )
-    # https://developers.google.com/drive/api/v3/quickstart/python
-    service = build("drive", "v3", credentials=credentials)
+    scopes = ["https://www.googleapis.com/auth/drive.readonly"]
+    creds = Credentials.from_service_account_file("/tmp/sa.json", scopes=scopes)
+    service = build("drive", "v3", credentials=creds)
 
     def download_file(self, real_file_id, file_name):
         # create drive api client
@@ -49,7 +46,7 @@ class Tif2Tiles:
                     fields="*",
                     corpora="drive",
                     supportsAllDrives=True,
-                    driveId="",
+                    driveId="0AFogaYeoFEjDUk9PVA",
                     includeItemsFromAllDrives=True,
                 )
                 .execute()
@@ -71,7 +68,7 @@ class Tif2Tiles:
                     for folder in folders:
                         if folder[0] == item["parents"][0]:
                             file_name = item["name"]
-                            # print(file_name)
+                            print(file_name)
                             if (
                                 not file_name.upper().endswith(".TIF")
                                 and not file_name.upper().endswith(".TIFF") == None
@@ -175,7 +172,7 @@ class Tif2Tiles:
 
         except Exception as e:
             print(73, str(e), flush=True)
-            # self.error(storage_bucket + "/" + file_name, "main", str(e))
+            self.error(storage_bucket + "/" + file_name, "main", str(e))
 
     def error(self, storage_file_path, status, message):
         print("108 error:", storage_file_path, status, message, flush=True)

@@ -48,4 +48,20 @@ jobs:
       job_name: email-alerts
       scheduler_name: run-email-alerts
       schedule: "1 * * * *"  #Every hour
+
+  deploy-florida-pollution:
+    needs: build-and-push-docker
+    uses: ./.github/workflows/deploy-job.yaml
+    with:
+      job_name: "florida-pollution-scraper"
+      job_path: "src.jobs.fl_pollution_scraper"
+
+  
+  deploy-florida-pollution-scheduler:
+    needs: [build-and-push-docker, deploy-florida-pollution]
+    uses: ./.github/workflows/deploy-scheduler.yaml
+    with:
+      job_name: florida-pollution-scraper
+      scheduler_name: run-florida-pollution-scraper
+      schedule: "55 2 * * *"  #Every day at 2:55am
       
