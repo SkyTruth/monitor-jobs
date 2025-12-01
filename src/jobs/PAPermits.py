@@ -112,12 +112,14 @@ class PAPermits:
                 print("TimeoutException")
                 print(py_ex)
                 print(py_ex.args)
+                raise
             finally:
                 driver.quit()
                 display.stop()
 
         except Exception as e:
             print("PAPermits error:", str(e), flush=True)
+            raise
         # Finish up
         for num, source_id in enumerate(self.source_ids, start=0):
             self.after_counts[num] = self.db.get_feedentry_count(source_id)["count"]
