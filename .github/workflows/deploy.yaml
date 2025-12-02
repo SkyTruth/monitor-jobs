@@ -42,7 +42,7 @@ jobs:
 
   
   deploy-email-alerts-scheduler:
-    needs: [build-and-push-docker, deploy-email-alerts]
+    needs: deploy-email-alerts
     uses: ./.github/workflows/deploy-scheduler.yaml
     with:
       job_name: email-alerts
@@ -58,7 +58,7 @@ jobs:
 
   
   deploy-florida-pollution-scheduler:
-    needs: [build-and-push-docker, deploy-florida-pollution]
+    needs: deploy-florida-pollution
     uses: ./.github/workflows/deploy-scheduler.yaml
     with:
       job_name: florida-pollution-scraper
@@ -75,7 +75,7 @@ jobs:
 
   
   deploy-pa-permits-scheduler:
-    needs: [build-and-push-docker, deploy-pa-permits]
+    needs: deploy-pa-permits
     uses: ./.github/workflows/deploy-scheduler.yaml
     with:
       job_name: pa-permits
