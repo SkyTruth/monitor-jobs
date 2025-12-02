@@ -31,6 +31,8 @@ steps:
             --image "$$IMAGE" \
             --region "${_REGION}" \
             --task-timeout="${_TIMEOUT}" \
+            --cpu=${_CPU} \
+            --memory=${_MEMORY} \
             --command python \
             --args="-m,${_JOB_PATH}" \
             --set-cloudsql-instances="${PROJECT_ID}:${_REGION}:${_DB_INSTANCE}"
