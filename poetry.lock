@@ -2266,18 +2266,6 @@ files = [
 six = ">=1.5"
 
 [[package]]
-name = "pyvirtualdisplay"
-version = "3.0"
-description = "python wrapper for Xvfb, Xephyr and Xvnc"
-optional = false
-python-versions = "*"
-groups = ["main"]
-files = [
-    {file = "PyVirtualDisplay-3.0-py3-none-any.whl", hash = "sha256:40d4b8dfe4b8de8552e28eb367647f311f88a130bf837fe910e7f180d5477f0e"},
-    {file = "PyVirtualDisplay-3.0.tar.gz", hash = "sha256:09755bc3ceb6eb725fb07eca5425f43f2358d3bf08e00d2a9b792a1aedd16159"},
-]
-
-[[package]]
 name = "pyyaml"
 version = "6.0.3"
 description = "YAML parser and emitter for Python"
@@ -3168,4 +3156,4 @@ testing = ["coverage[toml]", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10"
-content-hash = "e8d901d4d32312aea9014594265b69a749f031a4b360e18bb008fbd0900a4cea"
+content-hash = "7414603389289aabdb178219fa2d18e0b2db29af2fc6cc49023dcfa26031f39f"
