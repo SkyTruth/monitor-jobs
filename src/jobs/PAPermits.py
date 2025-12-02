@@ -162,15 +162,9 @@ class PAPermits:
                 process_tbl = True
                 rows_outer = tbl.find_all("tr", attrs={"valign": "top"})
                 for outer_row in rows_outer:
-                    # print(156, flush=True)
                     tbl2 = outer_row.find("table", attrs={"cols": "27"})
-                    # print(158, tbl2, flush=True)
                     if tbl2 != None:
-                        # for tbl2 in tbl2s:
                         rows = tbl2.find_all("tr", attrs={"valign": "top"})
-                        # print('155 rows=', len(rows))
-                        # if len(rows) == 22:
-                        #     print(158, rows, flush=True)
                         cols = []
                         rowx = 0
                         for row in rows:
@@ -185,32 +179,23 @@ class PAPermits:
                                     if first_div != None:
                                         second_div = first_div.find("div")
                                         if second_div != None:
-                                            # print('second_div:', second_div)
                                             val = second_div.text
-                                            # print('171 val:', val)
                                             if rowx == 0:
                                                 if cellx == 0:
                                                     if val != "REGION":
                                                         process_tbl = False
-                                                # print(173, val, flush=True)
                                                 cols.append(val)
-                                                # cellx += 1
                                             else:
                                                 if process_tbl:
-                                                    # print(176, cols, cellx, val, flush=True)
                                                     trans[cols[cellx]] = val
                                 cellx += 1
-                            # print(191, rowx, cellx,flush=True)
                             if process_tbl:
                                 if rowx == 0:
                                     print("180 cols:", cols, flush=True)
-                                # else:
-                                #     print(185, trans, flush=True)
                                 if rowx > 0:
                                     print("", flush=True)
                                     print("191 trans:", trans, flush=True)
 
-                                    REGION = trans["REGION"]
                                     COUNTY = trans["COUNTY"]
                                     MUNICIPALITY = trans["MUNICIPALITY"]
                                     PERMIT_ISSUED_DATE = trans["PERMIT ISSUED DATE"].replace(
@@ -224,20 +209,10 @@ class PAPermits:
                                     CONFIGURATION = trans["CONFIGURATION"]
                                     WELL_TYPE = trans["WELL TYPE"]
                                     FARM_NAME = trans["FARM NAME"]
-                                    # SPUD_DATE not always present
-                                    # SPUD_DATE = trans['SPUD DATE']
                                     LATITUDE_DECIMAL = trans["LATITUDE DECIMALNAD83"]
                                     LONGITUDE_DECIMAL = trans["LONGITUDE DECIMALNAD83"]
                                     OGO_NUM = trans["OPERATOROGO #"]
-                                    # 2023-07-21 commented out the following; not used and creating errors
-                                    # OPERATOR_ADDRESS = trans['OPERATOR ADDRESS']
-                                    # CITY = trans['CITY']
-                                    # STATE = trans['STATE']
-                                    # ZIP_CODE = trans['ZIP']
-                                    # AUTHORIZATION_ID = trans['AUTHORIZATION ID']
-                                    # CLIENT_ID = trans['CLIENT_ID']
                                     PRMRY_FAC_ID = trans["PRIMARY FACILITY ID"]
-                                    # MARCELLUS_SHALE_WELL = trans['MARCELLUS_SHALE_WELL']
 
                                     if CONFIGURATION in (
                                         "Horizontal Well",
@@ -259,12 +234,9 @@ class PAPermits:
                                         " longitude:",
                                         longitude,
                                     )
-                                    it = self.db.insertPaPermit(
+                                    self.db.insertPaPermit(
                                         str(WELL_API), str(latitude), str(longitude)
                                     )
-
-                                    # Use return here if you're just loading PaPermit
-                                    # return
 
                                     if WELL_TYPE == "GAS":
                                         WELL_TYPE = "Gas"
@@ -371,7 +343,6 @@ class PAPermits:
                                         "tags": tags,
                                         "status": "published",
                                     }
-                                    # print(summary)
                                     print("", flush=True)
                                     print(298, post_fields, flush=True)
                                     url = config.API_POST_FEEDENTRY
