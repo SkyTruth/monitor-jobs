@@ -31,12 +31,11 @@ class PAPermits:
     name = "PA DEP Permit00"
     process_number_of_days = 10
     today = datetime.today()
-    # war_start = '2023-03-31'
-    # today = datetime.strptime(war_start, '%Y-%m-%d')
     today_string = today.strftime("%m/%d/%Y")
     start_date = today - timedelta(days=int(process_number_of_days))
     start_date_string = start_date.strftime("%m/%d/%Y")
     num_reads = 0
+    scraped_webpage_url = "http://cedatareporting.pa.gov/Reportserver/Pages/ReportViewer.aspx?/Public/DEP/OG/SSRS/Permits_Issued_Detail"
 
     def main(self, args):
         try:
@@ -51,9 +50,7 @@ class PAPermits:
                 options.add_argument("--disable-gpu")
                 driver = webdriver.Firefox(options=options)
                 print("getting driver")
-                driver.get(
-                    "http://cedatareporting.pa.gov/Reportserver/Pages/ReportViewer.aspx?/Public/DEP/OG/SSRS/Permits_Issued_Detail"
-                )
+                driver.get(self.scraped_webpage_url)
                 print("dates:", self.start_date_string, self.today_string)
                 from_date = driver.find_element(By.NAME, "ReportViewerControl$ctl04$ctl03$txtValue")
                 driver.execute_script(
@@ -67,7 +64,6 @@ class PAPermits:
                 )
                 search_form = driver.find_element(By.NAME, "ReportViewerControl$ctl04$ctl00")
                 search_form.click()
-                # Wait as long as required, or maximum of 30 sec for alert to appear
                 WebDriverWait(driver, 40).until(
                     cond.visibility_of_any_elements_located(
                         (By.XPATH, '//table[@role="presentation"]')
@@ -141,18 +137,14 @@ class PAPermits:
             )
         email_subj += ")"
 
-    # @staticmethod
     def uuid3_str(self, namespace=uuid.NAMESPACE_URL, name=None):
         return self.uuid_str(uuid.uuid3(namespace, name))
 
-    # @staticmethod
     def uuid_str(self, uuid_obj):
         s = uuid_obj.hex
         return "-".join([s[0:8], s[8:12], s[12:16], s[16:20], s[20:]])
 
     def process_page(self, doc):
-        # print('doc:', doc, flush=True)
-
         try:
             # get all tables
             tbls = doc.find_all("table", attrs={"role": "presentation"})
@@ -174,7 +166,6 @@ class PAPermits:
                             cells = row.find_all("td")
                             for cell in cells:
                                 if process_tbl:
-                                    # print('cell:', cell, flush=True)
                                     first_div = cell.find("div")
                                     if first_div != None:
                                         second_div = first_div.find("div")
@@ -313,26 +304,19 @@ class PAPermits:
                                     tags = ["PADEP", "permit", "drilling"]
                                     if UNCONVENTIONAL == "Yes":
                                         tags.append("frack")
-
-                                    # if MARCELLUS_SHALE_WELL == 'Y':
-                                    #     tags.append('marcellus')
                                     if WELL_TYPE:
                                         tags.append(WELL_TYPE)
 
-                                    about_url = "http://cedatareporting.pa.gov/Reportserver/Pages/ReportViewer.aspx?/Public/DEP/OG/SSRS/Permits_Issued_Detail"
                                     unique = "%s/%s/%s" % (
                                         summary,
                                         WELL_API,
                                         PERMIT_ISSUED_DATE,
                                     )
-                                    # print('unique:', unique)
-                                    # feed_entry_id = self.uuid3_str(name=unique.encode('ASCII'))
                                     feed_entry_id = self.uuid3_str(name=unique)
-                                    # print('feed_entry_id:', feed_entry_id)
                                     post_fields = {
                                         "id": feed_entry_id,
                                         "title": title,
-                                        "link": about_url,
+                                        "link": self.scraped_webpage_url,
                                         "summary": summary,
                                         "content": content,
                                         "lat": latitude,
