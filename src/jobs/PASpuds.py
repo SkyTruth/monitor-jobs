@@ -9,13 +9,13 @@ sys.path.insert(0, "../")
 from src.utils.db import NrcDatabase
 from bs4 import BeautifulSoup
 from src.utils import config
-from pyvirtualdisplay.display import Display
 from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as cond
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
 
 
 class PAPermits:
@@ -29,12 +29,11 @@ class PAPermits:
     name = "PA DEP SPUD"
     process_number_of_days = 12
     today = datetime.today()
-    # war_start = '2020-07-17'
-    # today = datetime.strptime(war_start, '%Y-%m-%d')
     today_string = today.strftime("%m/%d/%Y")
     start_date = today - timedelta(days=int(process_number_of_days))
     start_date_string = start_date.strftime("%m/%d/%Y")
     num_reads = 0
+    scraped_webpage_url = "http://cedatareporting.pa.gov/Reportserver/Pages/ReportViewer.aspx?/Public/DEP/OG/SSRS/Spud_External_Data"
 
     def main(self, args):
         try:
@@ -42,16 +41,15 @@ class PAPermits:
                 self.before_counts[num] = self.db.get_feedentry_count(source_id)["count"]
 
             try:
-                display = Display(visible=0, size=(800, 600))
-                display.start()
+                options = FirefoxOptions()
+                options.add_argument("--headless")
+                options.add_argument("--no-sandbox")
+                options.add_argument("--disable-gpu")
+                driver = webdriver.Firefox(options=options)
                 # Initialize a Firefox webdriver
-                driver = webdriver.Firefox()
-                # driver.implicitly_wait(30)  # seconds
                 print("getting driver")
                 # Grab the web page
-                driver.get(
-                    "http://cedatareporting.pa.gov/Reportserver/Pages/ReportViewer.aspx?/Public/DEP/OG/SSRS/Spud_External_Data"
-                )
+                driver.get(self.scraped_webpage_url)
                 print("dates:", self.start_date_string, self.today_string)
                 from_date = driver.find_element(By.NAME, "ReportViewerControl$ctl04$ctl03$txtValue")
                 driver.execute_script(
@@ -116,7 +114,6 @@ class PAPermits:
                 print(ex)
             finally:
                 driver.quit()
-                display.stop()
 
         except Exception as e:
             print("Main PA DEP SPUD Exception:", e)
@@ -145,20 +142,16 @@ class PAPermits:
             )
         email_subj += ")"
 
-    # @staticmethod
     def uuid3_str(self, namespace=uuid.NAMESPACE_URL, name=None):
         return self.uuid_str(uuid.uuid3(namespace, name))
 
-    # @staticmethod
     def uuid_str(self, uuid_obj):
         s = uuid_obj.hex
         return "-".join([s[0:8], s[8:12], s[12:16], s[16:20], s[20:]])
 
     def process_page(self, doc):
-        # print('doc:', doc)
         try:
             tbl = doc.find("table", attrs={"cols": "14"})
-            # print('tbl:', tbl)
             try:
                 rows = tbl.find_all("tr", attrs={"valign": "top"})
             except Exception as e:
@@ -177,33 +170,14 @@ class PAPermits:
                     if first_div != None:
                         second_div = first_div.find("div")
                         if second_div != None:
-                            # print('second_div:', second_div)
                             val = second_div.text
-                            # print('val:', val)
                             if rowx == 0:
                                 cols.append(val)
                             else:
                                 trans[cols[cellx]] = val
-                                # print(cols[cellx], '=', val)
                     cellx += 1
                 print("")
                 print("trans:", trans)
-                # trans:
-                # {'SPUD DATE': '7/28/2020',
-                # 'API / PERMIT': '059-27997',
-                # ' OGO #': 'OGO-39054',
-                # 'OPERATOR': 'RICE DRILLING B LLC',
-                # 'REGION': 'EP DOGO SWDO Dstr Off',
-                # 'COUNTY': 'Greene',
-                # 'MUNICIPALITY': 'Aleppo Twp',
-                # 'FARM NAME': 'HEROLD A 12H',
-                # 'WELL TYPE': 'GAS',
-                # 'WELL STATUS': 'Active',
-                # 'LATITUDE': '39.840922',
-                # 'LONGITUDE': '-80.468481',
-                # 'CONFIGURATION': 'Horizontal Well',
-                # 'UNCONVENTIONAL': 'Yes'}
-
                 if rowx > 0:
                     SPUD_DATE = trans["SPUD DATE"]
                     API = trans["API / PERMIT"]
@@ -213,19 +187,11 @@ class PAPermits:
                     COUNTY = trans["COUNTY"]
                     MUNICIPALITY = trans["MUNICIPALITY"]
                     FARM_NAME = trans["FARM NAME"]
-                    # WELL_CODE_DESC = trans['WELL_CODE_DESC']
-                    WELL_STATUS = trans["WELL STATUS"]
                     LATITUDE = trans["LATITUDE"]
                     LONGITUDE = trans["LONGITUDE"]
-                    CONFIGURATION = trans["CONFIGURATION"]
                     UNCONVENTIONAL = trans["UNCONVENTIONAL"]
 
-                    latitude = LATITUDE
-                    longitude = LONGITUDE
-                    # permit_issued = lat_lng['incident_datetime']
-                    print("api_permit:", API, " found ", latitude, longitude)
-
-                    about_url = "http://cedatareporting.pa.gov/Reportserver/Pages/ReportViewer.aspx?/Public/DEP/OG/SSRS/Spud_External_Data"
+                    print("api_permit:", API, " found ", LATITUDE, LONGITUDE)
                     incident_datetime = SPUD_DATE
                     title = "%s Reports Drilling Started (SPUD) in %s Township" % (
                         OPERATOR,
@@ -281,11 +247,11 @@ class PAPermits:
                     post_fields = {
                         "id": feed_entry_id,
                         "title": title,
-                        "link": about_url,
+                        "link": self.scraped_webpage_url,
                         "summary": summary,
                         "content": content,
-                        "lat": latitude,
-                        "lng": longitude,
+                        "lat": LATITUDE,
+                        "lng": LONGITUDE,
                         "source_id": self.source_ids[0],
                         "kml_url": "",
                         "incident_datetime": incident_datetime,
