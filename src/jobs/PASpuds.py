@@ -29,8 +29,6 @@ class PAPermits:
     name = "PA DEP SPUD"
     process_number_of_days = 12
     today = datetime.today()
-    # war_start = '2020-07-17'
-    # today = datetime.strptime(war_start, '%Y-%m-%d')
     today_string = today.strftime("%m/%d/%Y")
     start_date = today - timedelta(days=int(process_number_of_days))
     start_date_string = start_date.strftime("%m/%d/%Y")
@@ -46,7 +44,6 @@ class PAPermits:
                 display.start()
                 # Initialize a Firefox webdriver
                 driver = webdriver.Firefox()
-                # driver.implicitly_wait(30)  # seconds
                 print("getting driver")
                 # Grab the web page
                 driver.get(
@@ -145,20 +142,16 @@ class PAPermits:
             )
         email_subj += ")"
 
-    # @staticmethod
     def uuid3_str(self, namespace=uuid.NAMESPACE_URL, name=None):
         return self.uuid_str(uuid.uuid3(namespace, name))
 
-    # @staticmethod
     def uuid_str(self, uuid_obj):
         s = uuid_obj.hex
         return "-".join([s[0:8], s[8:12], s[12:16], s[16:20], s[20:]])
 
     def process_page(self, doc):
-        # print('doc:', doc)
         try:
             tbl = doc.find("table", attrs={"cols": "14"})
-            # print('tbl:', tbl)
             try:
                 rows = tbl.find_all("tr", attrs={"valign": "top"})
             except Exception as e:
@@ -177,33 +170,14 @@ class PAPermits:
                     if first_div != None:
                         second_div = first_div.find("div")
                         if second_div != None:
-                            # print('second_div:', second_div)
                             val = second_div.text
-                            # print('val:', val)
                             if rowx == 0:
                                 cols.append(val)
                             else:
                                 trans[cols[cellx]] = val
-                                # print(cols[cellx], '=', val)
                     cellx += 1
                 print("")
                 print("trans:", trans)
-                # trans:
-                # {'SPUD DATE': '7/28/2020',
-                # 'API / PERMIT': '059-27997',
-                # ' OGO #': 'OGO-39054',
-                # 'OPERATOR': 'RICE DRILLING B LLC',
-                # 'REGION': 'EP DOGO SWDO Dstr Off',
-                # 'COUNTY': 'Greene',
-                # 'MUNICIPALITY': 'Aleppo Twp',
-                # 'FARM NAME': 'HEROLD A 12H',
-                # 'WELL TYPE': 'GAS',
-                # 'WELL STATUS': 'Active',
-                # 'LATITUDE': '39.840922',
-                # 'LONGITUDE': '-80.468481',
-                # 'CONFIGURATION': 'Horizontal Well',
-                # 'UNCONVENTIONAL': 'Yes'}
-
                 if rowx > 0:
                     SPUD_DATE = trans["SPUD DATE"]
                     API = trans["API / PERMIT"]
@@ -213,17 +187,11 @@ class PAPermits:
                     COUNTY = trans["COUNTY"]
                     MUNICIPALITY = trans["MUNICIPALITY"]
                     FARM_NAME = trans["FARM NAME"]
-                    # WELL_CODE_DESC = trans['WELL_CODE_DESC']
-                    WELL_STATUS = trans["WELL STATUS"]
                     LATITUDE = trans["LATITUDE"]
                     LONGITUDE = trans["LONGITUDE"]
-                    CONFIGURATION = trans["CONFIGURATION"]
                     UNCONVENTIONAL = trans["UNCONVENTIONAL"]
 
-                    latitude = LATITUDE
-                    longitude = LONGITUDE
-                    # permit_issued = lat_lng['incident_datetime']
-                    print("api_permit:", API, " found ", latitude, longitude)
+                    print("api_permit:", API, " found ", LATITUDE, LONGITUDE)
 
                     about_url = "http://cedatareporting.pa.gov/Reportserver/Pages/ReportViewer.aspx?/Public/DEP/OG/SSRS/Spud_External_Data"
                     incident_datetime = SPUD_DATE
@@ -284,8 +252,8 @@ class PAPermits:
                         "link": about_url,
                         "summary": summary,
                         "content": content,
-                        "lat": latitude,
-                        "lng": longitude,
+                        "lat": LATITUDE,
+                        "lng": LONGITUDE,
                         "source_id": self.source_ids[0],
                         "kml_url": "",
                         "incident_datetime": incident_datetime,
