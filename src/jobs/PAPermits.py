@@ -16,8 +16,8 @@ from selenium.webdriver.support import expected_conditions as cond
 from selenium.common.exceptions import NoAlertPresentException
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
-from pyvirtualdisplay.display import Display
 from src.utils import config
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
 
 
 class PAPermits:
@@ -31,12 +31,11 @@ class PAPermits:
     name = "PA DEP Permit00"
     process_number_of_days = 10
     today = datetime.today()
-    # war_start = '2023-03-31'
-    # today = datetime.strptime(war_start, '%Y-%m-%d')
     today_string = today.strftime("%m/%d/%Y")
     start_date = today - timedelta(days=int(process_number_of_days))
     start_date_string = start_date.strftime("%m/%d/%Y")
     num_reads = 0
+    scraped_webpage_url = "http://cedatareporting.pa.gov/Reportserver/Pages/ReportViewer.aspx?/Public/DEP/OG/SSRS/Permits_Issued_Detail"
 
     def main(self, args):
         try:
@@ -44,16 +43,14 @@ class PAPermits:
                 self.before_counts[num] = self.db.get_feedentry_count(source_id)["count"]
 
             try:
-                display = Display(visible=0, size=(800, 600))
-                display.start()
                 # Initialize a Firefox webdriver
-                driver = webdriver.Firefox()
-                # driver.implicitly_wait(30)  # seconds
+                options = FirefoxOptions()
+                options.add_argument("--headless")
+                options.add_argument("--no-sandbox")
+                options.add_argument("--disable-gpu")
+                driver = webdriver.Firefox(options=options)
                 print("getting driver")
-                # Grab the web page
-                driver.get(
-                    "http://cedatareporting.pa.gov/Reportserver/Pages/ReportViewer.aspx?/Public/DEP/OG/SSRS/Permits_Issued_Detail"
-                )
+                driver.get(self.scraped_webpage_url)
                 print("dates:", self.start_date_string, self.today_string)
                 from_date = driver.find_element(By.NAME, "ReportViewerControl$ctl04$ctl03$txtValue")
                 driver.execute_script(
@@ -67,7 +64,6 @@ class PAPermits:
                 )
                 search_form = driver.find_element(By.NAME, "ReportViewerControl$ctl04$ctl00")
                 search_form.click()
-                # Wait as long as required, or maximum of 30 sec for alert to appear
                 WebDriverWait(driver, 40).until(
                     cond.visibility_of_any_elements_located(
                         (By.XPATH, '//table[@role="presentation"]')
@@ -112,12 +108,13 @@ class PAPermits:
                 print("TimeoutException")
                 print(py_ex)
                 print(py_ex.args)
+                raise
             finally:
                 driver.quit()
-                display.stop()
 
         except Exception as e:
             print("PAPermits error:", str(e), flush=True)
+            raise
         # Finish up
         for num, source_id in enumerate(self.source_ids, start=0):
             self.after_counts[num] = self.db.get_feedentry_count(source_id)["count"]
@@ -140,18 +137,14 @@ class PAPermits:
             )
         email_subj += ")"
 
-    # @staticmethod
     def uuid3_str(self, namespace=uuid.NAMESPACE_URL, name=None):
         return self.uuid_str(uuid.uuid3(namespace, name))
 
-    # @staticmethod
     def uuid_str(self, uuid_obj):
         s = uuid_obj.hex
         return "-".join([s[0:8], s[8:12], s[12:16], s[16:20], s[20:]])
 
     def process_page(self, doc):
-        # print('doc:', doc, flush=True)
-
         try:
             # get all tables
             tbls = doc.find_all("table", attrs={"role": "presentation"})
@@ -161,15 +154,9 @@ class PAPermits:
                 process_tbl = True
                 rows_outer = tbl.find_all("tr", attrs={"valign": "top"})
                 for outer_row in rows_outer:
-                    # print(156, flush=True)
                     tbl2 = outer_row.find("table", attrs={"cols": "27"})
-                    # print(158, tbl2, flush=True)
                     if tbl2 != None:
-                        # for tbl2 in tbl2s:
                         rows = tbl2.find_all("tr", attrs={"valign": "top"})
-                        # print('155 rows=', len(rows))
-                        # if len(rows) == 22:
-                        #     print(158, rows, flush=True)
                         cols = []
                         rowx = 0
                         for row in rows:
@@ -179,37 +166,27 @@ class PAPermits:
                             cells = row.find_all("td")
                             for cell in cells:
                                 if process_tbl:
-                                    # print('cell:', cell, flush=True)
                                     first_div = cell.find("div")
                                     if first_div != None:
                                         second_div = first_div.find("div")
                                         if second_div != None:
-                                            # print('second_div:', second_div)
                                             val = second_div.text
-                                            # print('171 val:', val)
                                             if rowx == 0:
                                                 if cellx == 0:
                                                     if val != "REGION":
                                                         process_tbl = False
-                                                # print(173, val, flush=True)
                                                 cols.append(val)
-                                                # cellx += 1
                                             else:
                                                 if process_tbl:
-                                                    # print(176, cols, cellx, val, flush=True)
                                                     trans[cols[cellx]] = val
                                 cellx += 1
-                            # print(191, rowx, cellx,flush=True)
                             if process_tbl:
                                 if rowx == 0:
                                     print("180 cols:", cols, flush=True)
-                                # else:
-                                #     print(185, trans, flush=True)
                                 if rowx > 0:
                                     print("", flush=True)
                                     print("191 trans:", trans, flush=True)
 
-                                    REGION = trans["REGION"]
                                     COUNTY = trans["COUNTY"]
                                     MUNICIPALITY = trans["MUNICIPALITY"]
                                     PERMIT_ISSUED_DATE = trans["PERMIT ISSUED DATE"].replace(
@@ -223,20 +200,10 @@ class PAPermits:
                                     CONFIGURATION = trans["CONFIGURATION"]
                                     WELL_TYPE = trans["WELL TYPE"]
                                     FARM_NAME = trans["FARM NAME"]
-                                    # SPUD_DATE not always present
-                                    # SPUD_DATE = trans['SPUD DATE']
                                     LATITUDE_DECIMAL = trans["LATITUDE DECIMALNAD83"]
                                     LONGITUDE_DECIMAL = trans["LONGITUDE DECIMALNAD83"]
                                     OGO_NUM = trans["OPERATOROGO #"]
-                                    # 2023-07-21 commented out the following; not used and creating errors
-                                    # OPERATOR_ADDRESS = trans['OPERATOR ADDRESS']
-                                    # CITY = trans['CITY']
-                                    # STATE = trans['STATE']
-                                    # ZIP_CODE = trans['ZIP']
-                                    # AUTHORIZATION_ID = trans['AUTHORIZATION ID']
-                                    # CLIENT_ID = trans['CLIENT_ID']
                                     PRMRY_FAC_ID = trans["PRIMARY FACILITY ID"]
-                                    # MARCELLUS_SHALE_WELL = trans['MARCELLUS_SHALE_WELL']
 
                                     if CONFIGURATION in (
                                         "Horizontal Well",
@@ -258,12 +225,9 @@ class PAPermits:
                                         " longitude:",
                                         longitude,
                                     )
-                                    it = self.db.insertPaPermit(
+                                    self.db.insertPaPermit(
                                         str(WELL_API), str(latitude), str(longitude)
                                     )
-
-                                    # Use return here if you're just loading PaPermit
-                                    # return
 
                                     if WELL_TYPE == "GAS":
                                         WELL_TYPE = "Gas"
@@ -340,26 +304,19 @@ class PAPermits:
                                     tags = ["PADEP", "permit", "drilling"]
                                     if UNCONVENTIONAL == "Yes":
                                         tags.append("frack")
-
-                                    # if MARCELLUS_SHALE_WELL == 'Y':
-                                    #     tags.append('marcellus')
                                     if WELL_TYPE:
                                         tags.append(WELL_TYPE)
 
-                                    about_url = "http://cedatareporting.pa.gov/Reportserver/Pages/ReportViewer.aspx?/Public/DEP/OG/SSRS/Permits_Issued_Detail"
                                     unique = "%s/%s/%s" % (
                                         summary,
                                         WELL_API,
                                         PERMIT_ISSUED_DATE,
                                     )
-                                    # print('unique:', unique)
-                                    # feed_entry_id = self.uuid3_str(name=unique.encode('ASCII'))
                                     feed_entry_id = self.uuid3_str(name=unique)
-                                    # print('feed_entry_id:', feed_entry_id)
                                     post_fields = {
                                         "id": feed_entry_id,
                                         "title": title,
-                                        "link": about_url,
+                                        "link": self.scraped_webpage_url,
                                         "summary": summary,
                                         "content": content,
                                         "lat": latitude,
@@ -370,7 +327,6 @@ class PAPermits:
                                         "tags": tags,
                                         "status": "published",
                                     }
-                                    # print(summary)
                                     print("", flush=True)
                                     print(298, post_fields, flush=True)
                                     url = config.API_POST_FEEDENTRY

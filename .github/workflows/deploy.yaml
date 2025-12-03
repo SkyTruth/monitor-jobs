@@ -42,7 +42,7 @@ jobs:
 
   
   deploy-email-alerts-scheduler:
-    needs: [build-and-push-docker, deploy-email-alerts]
+    needs: deploy-email-alerts
     uses: ./.github/workflows/deploy-scheduler.yaml
     with:
       job_name: email-alerts
@@ -58,10 +58,26 @@ jobs:
 
   
   deploy-florida-pollution-scheduler:
-    needs: [build-and-push-docker, deploy-florida-pollution]
+    needs: deploy-florida-pollution
     uses: ./.github/workflows/deploy-scheduler.yaml
     with:
       job_name: florida-pollution-scraper
       scheduler_name: run-florida-pollution-scraper
       schedule: "55 2 * * *"  #Every day at 2:55am
-      
+
+  deploy-pa-permits:
+    needs: build-and-push-docker
+    uses: ./.github/workflows/deploy-job.yaml
+    with:
+      job_name: "pa-permits"
+      job_path: "src.jobs.PAPermits"
+      memory: "1Gi"
+
+  
+  deploy-pa-permits-scheduler:
+    needs: deploy-pa-permits
+    uses: ./.github/workflows/deploy-scheduler.yaml
+    with:
+      job_name: pa-permits
+      scheduler_name: run-pa-permits
+      schedule: "10 */6 * * *"  #Minute 10, every 6 hours      
