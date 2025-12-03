@@ -33,6 +33,7 @@ class PAPermits:
     start_date = today - timedelta(days=int(process_number_of_days))
     start_date_string = start_date.strftime("%m/%d/%Y")
     num_reads = 0
+    scraped_webpage_url = "http://cedatareporting.pa.gov/Reportserver/Pages/ReportViewer.aspx?/Public/DEP/OG/SSRS/Spud_External_Data"
 
     def main(self, args):
         try:
@@ -46,9 +47,7 @@ class PAPermits:
                 driver = webdriver.Firefox()
                 print("getting driver")
                 # Grab the web page
-                driver.get(
-                    "http://cedatareporting.pa.gov/Reportserver/Pages/ReportViewer.aspx?/Public/DEP/OG/SSRS/Spud_External_Data"
-                )
+                driver.get(self.scraped_webpage_url)
                 print("dates:", self.start_date_string, self.today_string)
                 from_date = driver.find_element(By.NAME, "ReportViewerControl$ctl04$ctl03$txtValue")
                 driver.execute_script(
@@ -192,8 +191,6 @@ class PAPermits:
                     UNCONVENTIONAL = trans["UNCONVENTIONAL"]
 
                     print("api_permit:", API, " found ", LATITUDE, LONGITUDE)
-
-                    about_url = "http://cedatareporting.pa.gov/Reportserver/Pages/ReportViewer.aspx?/Public/DEP/OG/SSRS/Spud_External_Data"
                     incident_datetime = SPUD_DATE
                     title = "%s Reports Drilling Started (SPUD) in %s Township" % (
                         OPERATOR,
@@ -249,7 +246,7 @@ class PAPermits:
                     post_fields = {
                         "id": feed_entry_id,
                         "title": title,
-                        "link": about_url,
+                        "link": self.scraped_webpage_url,
                         "summary": summary,
                         "content": content,
                         "lat": LATITUDE,
