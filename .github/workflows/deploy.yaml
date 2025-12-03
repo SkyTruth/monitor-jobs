@@ -80,4 +80,20 @@ jobs:
     with:
       job_name: pa-permits
       scheduler_name: run-pa-permits
-      schedule: "10 */6 * * *"  #Minute 10, every 6 hours      
+      schedule: "10 */6 * * *"  #Minute 10, every 6 hours  
+
+  deploy-pa-spuds:
+    needs: build-and-push-docker
+    uses: ./.github/workflows/deploy-job.yaml
+    with:
+      job_name: "pa-spuds"
+      job_path: "src.jobs.PASpuds"
+      memory: "1Gi"
+
+  deploy-pa-spuds-scheduler:
+    needs: deploy-pa-spuds
+    uses: ./.github/workflows/deploy-scheduler.yaml
+    with:
+      job_name: pa-spuds
+      scheduler_name: run-pa-spuds
+      schedule: "20 */6 * * *"  #Minute 20, every 6 hours          
