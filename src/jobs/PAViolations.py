@@ -11,7 +11,6 @@ import csv
 
 from src.utils import config
 from src.utils.db import NrcDatabase
-from pyvirtualdisplay.display import Display
 from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException, TimeoutException
 from selenium.webdriver.common.by import By
@@ -43,8 +42,6 @@ class PAPermits:
                 self.before_counts[num] = self.db.get_feedentry_count(source_id)["count"]
 
             try:
-                display = Display(visible=0, size=(800, 600))
-                display.start()
                 # Initialize a Firefox webdriver
                 cwd = os.getcwd()
                 print(cwd)
@@ -57,6 +54,9 @@ class PAPermits:
                 options.set_preference("browser.download.manager.showWhenStarting", False)
                 options.set_preference("browser.download.dir", download_dir)
                 options.set_preference("browser.helperApps.neverAsk.saveToDisk", "text/csv")
+                options.add_argument("--headless")
+                options.add_argument("--no-sandbox")
+                options.add_argument("--disable-gpu")
 
                 # Initialize driver with options
                 driver = webdriver.Firefox(options=options)
@@ -116,7 +116,6 @@ class PAPermits:
                 print(py_ex.args)
             finally:
                 driver.quit()
-                display.stop()
 
         except Exception as e:
             print("Main PA DEP Violation Exception:", e)
