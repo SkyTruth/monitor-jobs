@@ -104,6 +104,7 @@ jobs:
     with:
       job_name: "pa-violations"
       job_path: "src.jobs.PAViolations"
+      memory: "1Gi"
 
   deploy-pa-violations-scheduler:
     needs: deploy-pa-violations
