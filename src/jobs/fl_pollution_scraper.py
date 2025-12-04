@@ -41,7 +41,7 @@ class FlPollution:
             except urllib.error.HTTPError as e:
                 print("ERROR: Could not download from URL: %s" % download_url)
                 print("       URLLIB Error: %s" % e)
-                return 1
+                raise
 
         print("Opening workbook: %s" % file_to_process)
         with xlrd.open_workbook(file_to_process, "r") as workbook:
@@ -139,6 +139,7 @@ class FlPollution:
                                 print(response.content)
                         except Exception as e:
                             print("Error processing incident:", e)
+                            raise
 
         after_count = self.db.get_feedentry_count(self.source_id)["count"]
         print("before:", before_count)

@@ -119,6 +119,7 @@ class PAPermits:
 
         except Exception as e:
             print("Main PA DEP Violation Exception:", e)
+            raise
 
         # Finish up
         for num, source_id in enumerate(self.source_ids, start=0):
@@ -324,6 +325,7 @@ class PAPermits:
 
         except Exception as e:
             print("Process Page PA DEP Violation Exception:", e)
+            raise
 
 
 # /* ======================================================================= */#
