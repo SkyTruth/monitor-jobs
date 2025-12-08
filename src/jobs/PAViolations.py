@@ -47,7 +47,7 @@ class PAPermits:
                 print(cwd)
 
                 options = Options()
-                download_dir = os.path.join(os.getcwd(), "rawdata")
+                download_dir = os.path.join("/tmp", "rawdata")
                 os.makedirs(download_dir, exist_ok=True)
 
                 options.set_preference("browser.download.folderList", 2)  # custom folder
@@ -61,17 +61,7 @@ class PAPermits:
                 # Initialize driver with options
                 driver = webdriver.Firefox(options=options)
 
-                file_name = cwd + "/rawdata/OilGasCompliance.csv"
-                if os.path.exists(file_name):
-                    rename_file = (
-                        cwd
-                        + "/rawdata/OilGasCompliance"
-                        + str(datetime.now(tz=None)).replace(" ", "_").replace(":", "_")
-                        + ".csv"
-                    )
-                    os.rename(file_name, rename_file)
-
-                print("getting driver")
+                file_name = download_dir + "/OilGasCompliance.csv"
                 # Grab the web page
                 # New URL as of July, 2023
                 driver.get(self.scraped_webpage_url)
@@ -97,7 +87,7 @@ class PAPermits:
                     cond.invisibility_of_element_located((By.ID, "pleaseWaitModal"))
                 )
                 print("after", datetime.now(tz=None))
-
+                print("Writing to CSV file:", file_name)
                 with open(file_name) as csv_file:
                     csv_reader = csv.reader(csv_file, delimiter=",")
                     line_count = 0
