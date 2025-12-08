@@ -36,7 +36,7 @@ class PAPermits:
     num_reads = 0
     scraped_webpage_url = "https://greenport.pa.gov/ReportExtracts/OG/OilComplianceReport"
 
-    def main(self, args):
+    def main(self):
         try:
             for num, source_id in enumerate(self.source_ids, start=0):
                 self.before_counts[num] = self.db.get_feedentry_count(source_id)["count"]
@@ -324,4 +324,4 @@ class PAPermits:
 
 if __name__ == "__main__":
     it = PAPermits()
-    it.main(sys.argv[1:])
+    it.main()
