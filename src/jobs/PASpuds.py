@@ -112,11 +112,13 @@ class PAPermits:
             except Exception as ex:
                 print("Some other exception occurred:")
                 print(ex)
+                raise
             finally:
                 driver.quit()
 
         except Exception as e:
             print("Main PA DEP SPUD Exception:", e)
+            raise
 
         # Finish up
         for num, source_id in enumerate(self.source_ids, start=0):

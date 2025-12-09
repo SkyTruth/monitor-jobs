@@ -97,3 +97,19 @@ jobs:
       job_name: pa-spuds
       scheduler_name: run-pa-spuds
       schedule: "20 */6 * * *"  #Minute 20, every 6 hours          
+
+  deploy-pa-violations:
+    needs: build-and-push-docker
+    uses: ./.github/workflows/deploy-job.yaml
+    with:
+      job_name: "pa-violations"
+      job_path: "src.jobs.PAViolations"
+      memory: "1Gi"
+
+  deploy-pa-violations-scheduler:
+    needs: deploy-pa-violations
+    uses: ./.github/workflows/deploy-scheduler.yaml
+    with:
+      job_name: pa-violations
+      scheduler_name: run-pa-violations
+      schedule: "15 */6 * * *"  #Minute 15, every 6 hours   

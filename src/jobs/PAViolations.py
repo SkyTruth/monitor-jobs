@@ -11,7 +11,6 @@ import csv
 
 from src.utils import config
 from src.utils.db import NrcDatabase
-from pyvirtualdisplay.display import Display
 from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException, TimeoutException
 from selenium.webdriver.common.by import By
@@ -31,53 +30,41 @@ class PAPermits:
     name = "PA DEP Violation"
     process_number_of_days = 10
     today = datetime.today()
-    # Uncomment the next 2 line to look at specific dates
-    # war_start = '2021-01-07'
-    # today = datetime.strptime(war_start, '%Y-%m-%d')
     today_string = today.strftime("%m/%d/%Y")
     start_date = today - timedelta(days=int(process_number_of_days))
     start_date_string = start_date.strftime("%m/%d/%Y")
     num_reads = 0
+    scraped_webpage_url = "https://greenport.pa.gov/ReportExtracts/OG/OilComplianceReport"
 
-    def main(self, args):
+    def main(self):
         try:
             for num, source_id in enumerate(self.source_ids, start=0):
                 self.before_counts[num] = self.db.get_feedentry_count(source_id)["count"]
 
             try:
-                display = Display(visible=0, size=(800, 600))
-                display.start()
                 # Initialize a Firefox webdriver
                 cwd = os.getcwd()
                 print(cwd)
 
                 options = Options()
-                download_dir = os.path.join(os.getcwd(), "rawdata")
+                download_dir = os.path.join("/tmp", "rawdata")
                 os.makedirs(download_dir, exist_ok=True)
 
                 options.set_preference("browser.download.folderList", 2)  # custom folder
                 options.set_preference("browser.download.manager.showWhenStarting", False)
                 options.set_preference("browser.download.dir", download_dir)
                 options.set_preference("browser.helperApps.neverAsk.saveToDisk", "text/csv")
+                options.add_argument("--headless")
+                options.add_argument("--no-sandbox")
+                options.add_argument("--disable-gpu")
 
                 # Initialize driver with options
                 driver = webdriver.Firefox(options=options)
 
-                file_name = cwd + "/rawdata/OilGasCompliance.csv"
-                if os.path.exists(file_name):
-                    rename_file = (
-                        cwd
-                        + "/rawdata/OilGasCompliance"
-                        + str(datetime.now(tz=None)).replace(" ", "_").replace(":", "_")
-                        + ".csv"
-                    )
-                    os.rename(file_name, rename_file)
-
-                # driver.implicitly_wait(30)  # seconds
-                print("getting driver")
+                file_name = download_dir + "/OilGasCompliance.csv"
                 # Grab the web page
                 # New URL as of July, 2023
-                driver.get("https://greenport.pa.gov/ReportExtracts/OG/OilComplianceReport")
+                driver.get(self.scraped_webpage_url)
                 print("dates:", self.start_date_string, self.today_string)
                 from_date = driver.find_element(By.ID, "InspDtfrm")
                 driver.execute_script(
@@ -98,12 +85,9 @@ class PAPermits:
                 # Wait as long as required, or maximum of 30 sec for alert to appear
                 WebDriverWait(driver, 30).until(
                     cond.invisibility_of_element_located((By.ID, "pleaseWaitModal"))
-                    # cond.presence_of_element_located((By.ID, "btnReport"))
                 )
                 print("after", datetime.now(tz=None))
-
-                # return
-
+                print("Writing to CSV file:", file_name)
                 with open(file_name) as csv_file:
                     csv_reader = csv.reader(csv_file, delimiter=",")
                     line_count = 0
@@ -122,10 +106,10 @@ class PAPermits:
                 print(py_ex.args)
             finally:
                 driver.quit()
-                display.stop()
 
         except Exception as e:
             print("Main PA DEP Violation Exception:", e)
+            raise
 
         # Finish up
         for num, source_id in enumerate(self.source_ids, start=0):
@@ -149,11 +133,9 @@ class PAPermits:
             )
         email_subj += ")"
 
-    # @staticmethod
     def uuid3_str(self, namespace=uuid.NAMESPACE_URL, name=None):
         return self.uuid_str(uuid.uuid3(namespace, name))
 
-    # @staticmethod
     def uuid_str(self, uuid_obj):
         s = uuid_obj.hex
         return "-".join([s[0:8], s[8:12], s[12:16], s[16:20], s[20:]])
@@ -165,40 +147,23 @@ class PAPermits:
             val = ""
         return val
 
-    def examine_row(self, row):  # inspection_trans, violation_trans):
+    def examine_row(self, row):
         try:
-            INSPECTION_CLIENT_NAME = row[0]  # row[10] inspection_trans, 'INSPECTION CLIENT NAME')
-            INSPECTION_ID = row[1]
+            INSPECTION_CLIENT_NAME = row[0]
             INSPECTION_DATE = row[2]
             INSPECTION_TYPE = row[3]
             API_PERMIT = row[4]
-            FARM_NAME = row[5]
             UNCONVENTIONAL = row[6]
             SITE = row[7]
             if SITE > "":
                 SITE = SITE.split(" - ")
-            SITE_ID = ""
-            SITE_NAME = ""
-            if len(SITE) == 2:
-                SITE_ID = SITE[7]
-                SITE_NAME = SITE[8]
-            FACILITY_TYPE = row[9]
-            INSPECTION_CATEGORY = row[10]
-            REGION = row[11]
             COUNTY = row[12]
             MUNICIPALITY = row[13]
-            INSPECTOR = row[14]
-            INSPECTION_SOURCE = row[15]
-            INSPECTION_RESULT_DESCRIPTION = row[16]
             INSPECTION_COMMENT = row[17]
             VIOLATION_ID = row[18]
             VIOLATION_DATE = row[19]
-            VIOLATION_CODE = row[
-                20
-            ]  # violation_trans, 'VIOLATION CODE & DESCRIPTION').replace('–','-').replace('§', ' ')
+            VIOLATION_CODE = row[20]
             VIOLATION_TYPE = row[21]
-            VIOLATION_COMMENT = row[22]
-
             if VIOLATION_ID:
                 print("VIOLATION_ID:", VIOLATION_ID)
             else:
@@ -318,9 +283,6 @@ class PAPermits:
             )
 
             tags = ["PADEP", "frack", "violation", "drilling"]
-
-            about_url = "http://cedatareporting.pa.gov/Reportserver/Pages/ReportViewer.aspx?/Public/DEP/OG/SSRS/OG_Inspection_Docs"
-
             print(
                 "summary:",
                 summary,
@@ -329,13 +291,13 @@ class PAPermits:
                 " VIOLATION_DATE:",
                 VIOLATION_DATE,
             )
-            unique = VIOLATION_ID  # "%s %s %s" % (summary, VIOLATION_ID, VIOLATION_DATE)
+            unique = VIOLATION_ID
             feed_entry_id = self.uuid3_str(name=unique)
 
             post_fields = {
                 "id": feed_entry_id,
                 "title": title,
-                "link": about_url,
+                "link": self.scraped_webpage_url,
                 "summary": summary,
                 "content": content,
                 "lat": latitude,
@@ -353,6 +315,7 @@ class PAPermits:
 
         except Exception as e:
             print("Process Page PA DEP Violation Exception:", e)
+            raise
 
 
 # /* ======================================================================= */#
@@ -361,4 +324,4 @@ class PAPermits:
 
 if __name__ == "__main__":
     it = PAPermits()
-    it.main(sys.argv[1:])
+    it.main()
