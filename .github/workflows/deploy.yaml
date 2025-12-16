@@ -113,3 +113,18 @@ jobs:
       job_name: pa-violations
       scheduler_name: run-pa-violations
       schedule: "15 */6 * * *"  #Minute 15, every 6 hours   
+
+  deploy-nrc:
+    needs: build-and-push-docker
+    uses: ./.github/workflows/deploy-job.yaml
+    with:
+      job_name: "nrc"
+      job_path: "src.jobs.nrc_scraper"
+
+  deploy-nrc-scheduler:
+    needs: deploy-nrc
+    uses: ./.github/workflows/deploy-scheduler.yaml
+    with:
+      job_name: nrc
+      scheduler_name: run-nrc
+      schedule: "0 20 * * 4"  # Run at 8:00 PM every Thursday.
