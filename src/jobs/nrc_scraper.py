@@ -533,14 +533,21 @@ def main(excel_save_location=None, limit_incident_count=None):
         total_to_process = total_to_process[:limit_incident_count]
     logging.info(f"Processing {len(total_to_process)} new NRC reports...")
     for reportnum in total_to_process:
-        logging.info(f"Processing reportnum: {reportnum}")
-        post_fields = build_nrc_post(nrc_dfs, reportnum)
-        if post_fields:
-            logging.info(f"Inserted incident: {post_fields['title']} into feedentry.")
+        try:
+            logging.info(f"Processing reportnum: {reportnum}")
+            post_fields = build_nrc_post(nrc_dfs, reportnum)
+            if post_fields:
+                logging.info(f"Inserted incident: {post_fields['title']} into feedentry.")
+                url = config.API_POST_FEEDENTRY
+                response = requests.post(url, data=post_fields)
+                logging.info(response.content)
 
-        else:
-            logging.info(f"Failed to build post for reportnum {reportnum}.")
+            else:
+                logging.info(f"Failed to build post for reportnum {reportnum}.")
+        except Exception as e:
+            logging.error(f"Error processing reportnum {reportnum}: {e}")
+            continue
 
 
 if __name__ == "__main__":
-    main(limit_incident_count=5)
+    main()
