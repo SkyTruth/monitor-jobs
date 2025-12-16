@@ -27,6 +27,7 @@ dependencies = [
     "google-cloud-secret-manager >=2.11.1",
     "pandas (>=2.3.3,<3.0.0)",
     "openpyxl (>=3.1.5,<4.0.0)",
+    "xlrd (>=2.0.2,<3.0.0)",
 ]
 
 
