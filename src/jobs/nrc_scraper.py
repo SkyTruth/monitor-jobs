@@ -291,16 +291,13 @@ def process_geoinformation(nrc_dfs, reportnum):
         # print("Not enough info to find a geo code, reportnum=", task_id)
         return 0.0, 0.0, "Unknown", None
     if lat is None or lng is None:
-        # print(f"No lat/lng, getting from {precision} geocode for reportnum=", task_id)
-        try:
+        if len(geo_results["results"]) > 0:
             lat, lng = geo_results["results"][0]["geometry"]["location"].values()
             lat = float(lat)
             lng = float(lng)
-        except Exception as e:
-            print("Geocoding failed for reportnum=", task_id, " error=", e)
-            return 0.0, 0.0, "Unknown", geo_results
-    else:
-        pass
+        else:
+            print("No geocode results=", task_id)
+            return 0.0, 0.0, "Unknown", None
         # print(f"Returning explicit lat/lng from DMS for reportnum=", task_id)
     return lat, lng, precision, geo_results
 
@@ -349,8 +346,10 @@ def build_nrc_post(nrc_dfs, reportnum):
     lat, lng, precision, geo_results = process_geoinformation(nrc_dfs, reportnum)
     if precision == "Explicit":
         source = "Explicit"
-    else:
+    elif geo_results is not None:
         source = "Approximated from " + geo_results["results"][0]["types"][0]
+    else:
+        source = "Unknown"
     sheen_length = get_field_value(nrc_dfs, field_map_df, reportnum, "sheen_size_length")
     sheen_width = get_field_value(nrc_dfs, field_map_df, reportnum, "sheen_size_width")
     sheen_length_unit = get_field_value(nrc_dfs, field_map_df, reportnum, "sheen_size_length_unit")
