@@ -25,7 +25,7 @@ field_map_df = pd.DataFrame(FIELD_MAP)
 
 def correct_hemisphere(lat, lon, LOCATION_STATE):
     if LOCATION_STATE in TERRITORIES.keys() and (lat < 0 or lon > 0):
-        logging.info("corrected hemisphere for ", lat, lon)
+        logging.info(f"corrected hemisphere for {lat}, {lon}")
         lat = abs(lat)
         lon = -abs(lon)
     return lat, lon
@@ -503,7 +503,7 @@ def main(excel_save_location=None, limit_incident_count=None):
         excel_save_location = "/tmp"
     file_name = f"CY{current_year}.xlsx"
     download_url = f"https://nrc.uscg.mil/FOIAFiles/CY{current_year}.xlsx"
-    logging.info("Downloading NRC data from", download_url, "to", excel_save_location)
+    logging.info(f"Downloading NRC data from {download_url} to {excel_save_location}")
     download(download_url, excel_save_location, file_name)
     nrc_sheets = [
         "CALLS",
@@ -518,8 +518,12 @@ def main(excel_save_location=None, limit_incident_count=None):
     nrc_dfs = pd.read_excel(excel_save_location + "/" + file_name, sheet_name=nrc_sheets)
     INCIDENT_COMMONS = nrc_dfs["INCIDENT_COMMONS"]
     most_recent_reportnum = INCIDENT_COMMONS["SEQNOS"].max()
-    logging.info("Last posted reportnum:", last_posted_reportnum)
-    logging.info("Most recent reportnum in NRC data:", most_recent_reportnum)
+    logging.info(
+        f"Last posted reportnum: {last_posted_reportnum}",
+    )
+    logging.info(
+        f"Most recent reportnum in NRC data: {most_recent_reportnum}",
+    )
     total_to_process = (
         INCIDENT_COMMONS[INCIDENT_COMMONS["SEQNOS"] > last_posted_reportnum]["SEQNOS"]
         .unique()
@@ -529,10 +533,11 @@ def main(excel_save_location=None, limit_incident_count=None):
         total_to_process = total_to_process[:limit_incident_count]
     logging.info(f"Processing {len(total_to_process)} new NRC reports...")
     for reportnum in total_to_process:
-        logging.info("Processing reportnum:", reportnum)
+        logging.info(f"Processing reportnum: {reportnum}")
         post_fields = build_nrc_post(nrc_dfs, reportnum)
         if post_fields:
             logging.info(f"Inserted incident: {post_fields['title']} into feedentry.")
+
         else:
             logging.info(f"Failed to build post for reportnum {reportnum}.")
 
