@@ -16,13 +16,16 @@ from src.utils.utils import (
 import os
 import locale
 from src.utils import config
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 field_map_df = pd.DataFrame(FIELD_MAP)
 
 
 def correct_hemisphere(lat, lon, LOCATION_STATE):
     if LOCATION_STATE in TERRITORIES.keys() and (lat < 0 or lon > 0):
-        print("corrected hemisphere for ", lat, lon)
+        logging.info("corrected hemisphere for ", lat, lon)
         lat = abs(lat)
         lon = -abs(lon)
     return lat, lon
@@ -204,9 +207,11 @@ def dms2dd(degrees, minutes, seconds, quadrant):
     illegal_vals = (None, "", "")
     for iv in illegal_vals:
         if iv in (degrees, minutes, seconds, quadrant):
+            logging.error("ERROR: Illegal value: %s" % iv)
             raise ValueError("ERROR: Illegal value: %s" % iv)
 
     if quadrant.lower() not in ("n", "e", "s", "w"):
+        logging.error("ERROR: Invalid quadrant: %s" % quadrant)
         raise ValueError("ERROR: Invalid quadrant: %s" % quadrant)
     # 9/21/2020
     # Round to 6 decimals
@@ -288,7 +293,6 @@ def process_geoinformation(nrc_dfs, reportnum):
             geo_results = geocodeAddress(address, "CITY_STATE", task_id, state)
             precision = "CITY_STATE"
     else:
-        # print("Not enough info to find a geo code, reportnum=", task_id)
         return 0.0, 0.0, "Unknown", None
     if lat is None or lng is None:
         if len(geo_results["results"]) > 0:
@@ -296,9 +300,8 @@ def process_geoinformation(nrc_dfs, reportnum):
             lat = float(lat)
             lng = float(lng)
         else:
-            print("No geocode results=", task_id)
+            logging.warning("No geocode results=", task_id)
             return 0.0, 0.0, "Unknown", None
-        # print(f"Returning explicit lat/lng from DMS for reportnum=", task_id)
     return lat, lng, precision, geo_results
 
 
@@ -500,7 +503,7 @@ def main(excel_save_location=None, limit_incident_count=None):
         excel_save_location = "/tmp"
     file_name = f"CY{current_year}.xlsx"
     download_url = f"https://nrc.uscg.mil/FOIAFiles/CY{current_year}.xlsx"
-    print("Downloading NRC data from", download_url, "to", excel_save_location)
+    logging.info("Downloading NRC data from", download_url, "to", excel_save_location)
     download(download_url, excel_save_location, file_name)
     nrc_sheets = [
         "CALLS",
@@ -515,8 +518,8 @@ def main(excel_save_location=None, limit_incident_count=None):
     nrc_dfs = pd.read_excel(excel_save_location + "/" + file_name, sheet_name=nrc_sheets)
     INCIDENT_COMMONS = nrc_dfs["INCIDENT_COMMONS"]
     most_recent_reportnum = INCIDENT_COMMONS["SEQNOS"].max()
-    print("Last posted reportnum:", last_posted_reportnum)
-    print("Most recent reportnum in NRC data:", most_recent_reportnum)
+    logging.info("Last posted reportnum:", last_posted_reportnum)
+    logging.info("Most recent reportnum in NRC data:", most_recent_reportnum)
     total_to_process = (
         INCIDENT_COMMONS[INCIDENT_COMMONS["SEQNOS"] > last_posted_reportnum]["SEQNOS"]
         .unique()
@@ -524,11 +527,15 @@ def main(excel_save_location=None, limit_incident_count=None):
     )
     if limit_incident_count is not None:
         total_to_process = total_to_process[:limit_incident_count]
-    print(f"Processing {len(total_to_process)} new NRC reports...")
+    logging.info(f"Processing {len(total_to_process)} new NRC reports...")
     for reportnum in total_to_process:
-        print("Processing reportnum:", reportnum)
+        logging.info("Processing reportnum:", reportnum)
         post_fields = build_nrc_post(nrc_dfs, reportnum)
         if post_fields:
-            print(f"Inserted incident: {post_fields['title']} into feedentry.")
+            logging.info(f"Inserted incident: {post_fields['title']} into feedentry.")
         else:
-            print(f"Failed to build post for reportnum {reportnum}.")
+            logging.info(f"Failed to build post for reportnum {reportnum}.")
+
+
+if __name__ == "__main__":
+    main(limit_incident_count=5)
