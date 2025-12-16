@@ -300,8 +300,8 @@ def process_geoinformation(nrc_dfs, reportnum):
             lat = float(lat)
             lng = float(lng)
         else:
-            logging.warning("No geocode results=", task_id)
-            return 0.0, 0.0, "Unknown", None
+            logging.error("No geocode results=", task_id)
+            raise ValueError("No geocode results=" + str(task_id))
     return lat, lng, precision, geo_results
 
 
@@ -531,6 +531,8 @@ def main(excel_save_location=None, limit_incident_count=None):
     )
     if limit_incident_count is not None:
         total_to_process = total_to_process[:limit_incident_count]
+    if len(total_to_process) == 0:
+        logging.warning("No new incidents to process in NRC spreadsheet.")
     logging.info(f"Processing {len(total_to_process)} new NRC reports...")
     for reportnum in total_to_process:
         try:
