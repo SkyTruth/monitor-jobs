@@ -275,7 +275,7 @@ def process_geoinformation(nrc_dfs, reportnum):
     if lat and lng:
         pass
     elif location and city and state:
-        address = f"{location} {city}, {state} {zip_code or ''}"
+        address = f"{location}, {city}, {state} {zip_code or ''}"
         geo_results = geocodeAddress(address, "street_address", task_id, state)
         precision = "street_address"
     elif incidentlocation and city and state:
@@ -283,6 +283,7 @@ def process_geoinformation(nrc_dfs, reportnum):
         geo_results = geocodeAddress(address, "street_address", task_id, state)
         precision = "street_address"
     elif zip_code or (city and state):
+        zip_code = str(int(zip_code))
         if zip_code:
             if len(zip_code) == 9:
                 zip_code = f"{zip_code[:5]}-{zip_code[5:]}"
