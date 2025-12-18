@@ -168,7 +168,6 @@ def dms2dd(degrees, minutes, seconds, quadrant):
     if quadrant.lower() not in ("n", "e", "s", "w"):
         logging.error("ERROR: Invalid quadrant: %s" % quadrant)
         raise ValueError("ERROR: Invalid quadrant: %s" % quadrant)
-    # 9/21/2020
     # Round to 6 decimals
     output = round(int(degrees) + int(minutes) / 60 + int(seconds) / 3600, 6)
 
@@ -352,7 +351,7 @@ class NrcIncident:
             self.zip_code = str(int(self.zip_code))
             if len(self.zip_code) == 9:
                 self.zip_code = f"{self.zip_code[:5]}-{self.zip_code[5:]}"
-                
+
             self.geo_results = geocodeAddress(self.zip_code)
             self.precision = "ZIP"
         elif self.city and self.state:
@@ -555,11 +554,12 @@ def main(excel_save_location=None, limit_incident_count=None):
     logging.info(f"Processing {len(total_to_process)} new NRC reports...")
     for reportnum in total_to_process:
         try:
-            logging.info(f"Processing reportnum: {reportnum}")
             nrc_incident = NrcIncident(reportnum=reportnum, nrc_dfs=nrc_dfs)
             post_fields = nrc_incident.build_nrc_post()
             if post_fields:
-                logging.info(f"Inserted incident: {post_fields['title']} into feedentry.")
+                logging.info(
+                    f"Inserted incident {reportnum}: {post_fields['title']} into feedentry."
+                )
                 url = config.API_POST_FEEDENTRY
                 response = requests.post(url, data=post_fields)
                 logging.info(response.content)
