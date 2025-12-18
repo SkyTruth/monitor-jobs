@@ -268,7 +268,7 @@ class NrcIncident:
             else None
         )
         self.release_type = RELEASE_TYPE_DICT.get(self.material_name, None)
-        self.min_spill_volume = computer_min_spill_volume(self.sheen_width_ft, self.sheen_length_ft)
+        self.min_spill_volume = compute_min_spill_volume(self.sheen_width_ft, self.sheen_length_ft)
 
         self.reported_spill_volume = self.get_field_value("amount")
         self.reported_spill_unit = self.get_field_value("unit")
