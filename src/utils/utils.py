@@ -1,389 +1,175 @@
 # Mapping for NRC scraper. This avoids using database tables for processing data.
-FIELD_MAP = [
-    {
-        "db_table": '"NrcScrapedReport"',
-        "db_field": "reportnum",
-        "db_schema": "public",
+FIELD_MAP = {
+    "reportnum": {
         "sheet_name": "CALLS",
         "column": "SEQNOS",
-        "processing": None,
     },
-    {
-        "db_table": '"NrcScrapedReport"',
-        "db_field": "calltype",
-        "db_schema": "public",
+    "calltype": {
         "sheet_name": "CALLS",
         "column": "CALLTYPE",
-        "processing": {"function": "NrcScrapedReportFields.calltype"},
     },
-    {
-        "db_table": '"NrcScrapedReport"',
-        "db_field": "suspected_responsible_company",
-        "db_schema": "public",
+    "suspected_responsible_company": {
         "sheet_name": "CALLS",
         "column": "RESPONSIBLE_COMPANY",
-        "processing": None,
     },
-    {
-        "db_table": '"NrcScrapedReport"',
-        "db_field": "description",
-        "db_schema": "public",
+    "description": {
         "sheet_name": "INCIDENT_COMMONS",
         "column": "DESCRIPTION_OF_INCIDENT",
-        "processing": None,
     },
-    {
-        "db_table": '"NrcScrapedReport"',
-        "db_field": "incident_datetime",
-        "db_schema": "public",
+    "incident_datetime": {
         "sheet_name": "INCIDENT_COMMONS",
         "column": "INCIDENT_DATE_TIME",
-        "processing": None,
     },
-    {
-        "db_table": '"NrcScrapedReport"',
-        "db_field": "incidenttype",
-        "db_schema": "public",
+    "incidenttype": {
         "sheet_name": "INCIDENT_COMMONS",
         "column": "TYPE_OF_INCIDENT",
-        "processing": None,
     },
-    {
-        "db_table": '"NrcScrapedReport"',
-        "db_field": "cause",
-        "db_schema": "public",
+    "cause": {
         "sheet_name": "INCIDENT_COMMONS",
         "column": "INCIDENT_CAUSE",
-        "processing": None,
     },
-    {
-        "db_table": '"NrcScrapedReport"',
-        "db_field": "incidentlocation",
-        "db_schema": "public",
+    "incidentlocation": {
         "sheet_name": "INCIDENT_COMMONS",
         "column": "INCIDENT_LOCATION",
-        "processing": None,
     },
-    {
-        "db_table": '"NrcScrapedReport"',
-        "db_field": "location",
-        "db_schema": "public",
+    "location": {
         "sheet_name": "INCIDENT_COMMONS",
         "column": "LOCATION_ADDRESS",
-        "processing": None,
     },
-    {
-        "db_table": '"NrcScrapedReport"',
-        "db_field": "locationstreet1",
-        "db_schema": "public",
+    "locationstreet1": {
         "sheet_name": "INCIDENT_COMMONS",
         "column": "LOCATION_STREET1",
-        "processing": None,
     },
-    {
-        "db_table": '"NrcScrapedReport"',
-        "db_field": "locationstreet2",
-        "db_schema": "public",
+    "locationstreet2": {
         "sheet_name": "INCIDENT_COMMONS",
         "column": "LOCATION_STREET2",
-        "processing": None,
     },
-    {
-        "db_table": '"NrcScrapedReport"',
-        "db_field": "state",
-        "db_schema": "public",
+    "state": {
         "sheet_name": "INCIDENT_COMMONS",
         "column": "LOCATION_STATE",
-        "processing": None,
     },
-    {
-        "db_table": '"NrcScrapedReport"',
-        "db_field": "nearestcity",
-        "db_schema": "public",
+    "nearestcity": {
         "sheet_name": "INCIDENT_COMMONS",
         "column": "LOCATION_NEAREST_CITY",
-        "processing": None,
     },
-    {
-        "db_table": '"NrcScrapedReport"',
-        "db_field": "county",
-        "db_schema": "public",
+    "county": {
         "sheet_name": "INCIDENT_COMMONS",
         "column": "LOCATION_COUNTY",
-        "processing": None,
     },
-    {
-        "db_table": '"NrcScrapedReport"',
-        "db_field": "medium_affected",
-        "db_schema": "public",
+    "medium_affected": {
         "sheet_name": "INCIDENT_DETAILS",
         "column": "MEDIUM_DESC",
-        "processing": None,
     },
-    {
-        "db_table": '"NrcScrapedReport"',
-        "db_field": "material_name",
-        "db_schema": "public",
+    "material_name": {
         "sheet_name": "MATERIAL_INVOLVED",
         "column": "NAME_OF_MATERIAL",
-        "processing": None,
     },
-    {
-        "db_table": "NrcScrapedMaterial",
-        "db_field": "reportnum",
-        "db_schema": "public",
-        "sheet_name": "MATERIAL_INVOLVED",
-        "column": "SEQNOS",
-        "processing": None,
-    },
-    {
-        "db_table": '"NrcScrapedMaterial"',
-        "db_field": "name",
-        "db_field_width": 128,
-        "db_schema": "public",
-        "sheet_name": "MATERIAL_INVOLVED",
-        "column": "NAME_OF_MATERIAL",
-        "processing": None,
-    },
-    {
-        "db_table": "NrcScrapedMaterial",
-        "db_field": "reached_water",
-        "db_schema": "public",
+    "reached_water": {
         "sheet_name": "MATERIAL_INVOLVED",
         "column": "IF_REACHED_WATER",
-        "processing": None,
     },
-    {
-        "db_table": '"NrcScrapedMaterial"',
-        "db_field": "amt_in_water",
-        "db_schema": "public",
+    "amt_in_water": {
         "sheet_name": "MATERIAL_INVOLVED",
         "column": "AMOUNT_IN_WATER",
-        "processing": None,
     },
-    {
-        "db_table": '"NrcScrapedMaterial"',
-        "db_field": "amt_in_water_unit",
-        "db_schema": "public",
+    "amt_in_water_unit": {
         "sheet_name": "MATERIAL_INVOLVED",
         "column": "UNIT_OF_MEASURE_REACH_WATER",
-        "processing": None,
     },
-    {
-        "db_table": '"NrcScrapedMaterial"',
-        "db_field": "chris_code",
-        "db_schema": "public",
+    "chris_code": {
         "sheet_name": "MATERIAL_INVOLVED",
         "column": "CHRIS_CODE",
-        "processing": None,
     },
-    {  # TODO: Not populated
-        "db_table": '"NrcScrapedMaterial"',
-        "db_field": "amount",
-        "db_schema": "public",
+    "amount": {
         "sheet_name": "MATERIAL_INVOLVED",
         "column": "AMOUNT_OF_MATERIAL",
-        "processing": None,
     },
-    {  # TODO: Not populated
-        "db_table": '"NrcScrapedMaterial"',
-        "db_field": "unit",
-        "db_schema": "public",
+    "unit": {
         "sheet_name": "MATERIAL_INVOLVED",
         "column": "UNIT_OF_MEASURE",
-        "processing": None,
     },
-    {
-        "db_table": '"NrcScrapedMaterial"',
-        "db_field": "ft_id",
-        "db_schema": "public",
+    "ft_id": {
         "sheet_name": "CALLS",
         "column": None,
-        "processing": {"function": "NrcScrapedMaterialFields.ft_id"},
     },
-    {
-        "db_table": '"NrcScrapedMaterial"',
-        "db_field": "st_id",
-        "db_schema": "public",
+    "st_id": {
         "sheet_name": "CALLS",
         "column": None,
-        "processing": {"function": "NrcScrapedMaterialFields.st_id"},
     },
-    {
-        "db_table": '"NrcScrapedReport"',
-        "db_field": "full_report_url",
-        "db_schema": "public",
+    "full_report_url": {
         "sheet_name": "CALLS",
         "column": None,
-        "processing": {"function": "NrcScrapedReportFields.full_report_url"},
     },
-    {
-        "db_table": '"NrcScrapedReport"',
-        "db_field": "materials_url",
-        "db_schema": "public",
+    "materials_url": {
         "sheet_name": "CALLS",
         "column": None,
-        "processing": {"function": "NrcScrapedReportFields.materials_url"},
     },
-    {
-        "db_table": '"NrcScrapedReport"',
-        "db_field": "time_stamp",
-        "db_schema": "public",
+    "time_stamp": {
         "sheet_name": "CALLS",
         "column": None,
-        "processing": {"function": "NrcScrapedReportFields.time_stamp"},
     },
-    {
-        "db_table": '"NrcScrapedReport"',
-        "db_field": "ft_id",
-        "db_schema": "public",
-        "sheet_name": "CALLS",
-        "column": None,
-        "processing": {"function": "NrcScrapedReportFields.ft_id"},
-    },
-    {
-        "db_table": '"NrcParsedReport"',
-        "db_field": "reportnum",
-        "db_schema": "public",
-        "sheet_name": "INCIDENT_COMMONS",
-        "column": "SEQNOS",
-        "processing": None,
-    },
-    {
-        "db_table": '"NrcParsedReport"',
-        "db_field": "lat_degrees",
-        "db_schema": "public",
+    "lat_degrees": {
         "sheet_name": "INCIDENT_COMMONS",
         "column": "LAT_DEG",
-        "processing": None,
     },
-    {
-        "db_table": '"NrcParsedReport"',
-        "db_field": "lat_minutes",
-        "db_schema": "public",
+    "lat_minutes": {
         "sheet_name": "INCIDENT_COMMONS",
         "column": "LAT_MIN",
-        "processing": None,
     },
-    {
-        "db_table": '"NrcParsedReport"',
-        "db_field": "lat_seconds",
-        "db_schema": "public",
+    "lat_seconds": {
         "sheet_name": "INCIDENT_COMMONS",
         "column": "LAT_SEC",
-        "processing": None,
     },
-    {
-        "db_table": '"NrcParsedReport"',
-        "db_field": "lat_quadrant",
-        "db_schema": "public",
+    "lat_quadrant": {
         "sheet_name": "INCIDENT_COMMONS",
         "column": "LAT_QUAD",
-        "processing": None,
     },
-    {
-        "db_table": '"NrcParsedReport"',
-        "db_field": "lon_degrees",
-        "db_schema": "public",
+    "lon_degrees": {
         "sheet_name": "INCIDENT_COMMONS",
         "column": "LONG_DEG",
-        "processing": None,
     },
-    {
-        "db_table": '"NrcParsedReport"',
-        "db_field": "lon_minutes",
-        "db_schema": "public",
+    "lon_minutes": {
         "sheet_name": "INCIDENT_COMMONS",
         "column": "LONG_MIN",
-        "processing": None,
     },
-    {
-        "db_table": '"NrcParsedReport"',
-        "db_field": "lon_seconds",
-        "db_schema": "public",
+    "lon_seconds": {
         "sheet_name": "INCIDENT_COMMONS",
         "column": "LONG_SEC",
-        "processing": None,
     },
-    {
-        "db_table": '"NrcParsedReport"',
-        "db_field": "lon_quadrant",
-        "db_schema": "public",
+    "lon_quadrant": {
         "sheet_name": "INCIDENT_COMMONS",
         "column": "LONG_QUAD",
-        "processing": None,
     },
-    {
-        "db_table": '"NrcParsedReport"',
-        "db_field": "zip",
-        "db_schema": "public",
+    "zip": {
         "sheet_name": "INCIDENT_COMMONS",
         "column": "LOCATION_ZIP",
-        "processing": None,
     },
-    {
-        "db_table": '"NrcParsedReport"',
-        "db_field": "sheen_size_length",
-        "db_schema": "public",
+    "sheen_size_length": {
         "sheet_name": "INCIDENT_DETAILS",
         "column": "SHEEN_SIZE_LENGTH",
-        "processing": {
-            "function": "NrcParsedReportFields.sheen_size_length",
-            "args": {"unit_field": "SHEEN_SIZE_LENGTH_UNITS"},
-        },
     },
-    {
-        "db_table": '"NrcParsedReport"',
-        "db_field": "sheen_size_width",
-        "db_schema": "public",
+    "sheen_size_width": {
         "sheet_name": "INCIDENT_DETAILS",
         "column": "SHEEN_SIZE_WIDTH",
-        "processing": {
-            "function": "NrcParsedReportFields.sheen_size_width",
-            "args": {"unit_field": "SHEEN_SIZE_WIDTH_UNITS"},
-        },
     },
-    {
-        "db_table": None,
-        "db_field": "sheen_size_width_unit",
-        "db_schema": "public",
+    "sheen_size_width_unit": {
         "sheet_name": "INCIDENT_DETAILS",
         "column": "SHEEN_SIZE_WIDTH_UNITS",
-        "processing": None,
     },
-    {
-        "db_table": None,
-        "db_field": "sheen_size_length_unit",
-        "db_schema": "public",
+    "sheen_size_length_unit": {
         "sheet_name": "INCIDENT_DETAILS",
         "column": "SHEEN_SIZE_LENGTH_UNITS",
-        "processing": None,
     },
-    {  # TODO: Implement
-        "db_table": '"NrcParsedReport"',
-        "db_field": "affected_area",
-        "db_schema": "public",
+    "affected_area": {
         "sheet_name": "INCIDENT_COMMONS",
         "column": None,
-        "processing": {"function": "NrcParsedReportFields.affected_area"},
     },
-    {
-        "db_table": '"NrcParsedReport"',
-        "db_field": "county",
-        "db_schema": "public",
-        "sheet_name": "INCIDENT_COMMONS",
-        "column": "LOCATION_COUNTY",
-        "processing": None,
-    },
-    {
-        "db_table": '"BotTaskStatus"',
-        "db_field": "task_id",
-        "db_schema": "public",
+    "task_id": {
         "sheet_name": "INCIDENT_COMMONS",
         "column": "SEQNOS",
-        "processing": None,
     },
-]
+}
+
 
 TERRITORIES = {
     "AL": "Alabama",

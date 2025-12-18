@@ -20,8 +20,6 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
-field_map_df = pd.DataFrame(FIELD_MAP)
-
 
 def correct_hemisphere(lat, lon, LOCATION_STATE):
     if LOCATION_STATE in TERRITORIES.keys() and (lat < 0 or lon > 0):
@@ -202,10 +200,10 @@ class NrcIncident:
     Represents a single NRC incident report, with methods to extract fields and build a post.
     """
 
-    def __init__(self, reportnum, nrc_dfs, field_map_df):
+    def __init__(self, reportnum, nrc_dfs):
         self.reportnum = reportnum
         self.nrc_dfs = nrc_dfs
-        self.field_map_df = field_map_df
+        self.field_map = FIELD_MAP
         self.task_id = self.get_field_value("task_id")
         self.description = self.get_field_value("description")
         self.incident_datetime = timestamp2datetime(self.get_field_value("incident_datetime"))
@@ -264,38 +262,39 @@ class NrcIncident:
         )
         self.process_geoinformation()
 
-    def get_field_value(self, db_field):
+    def get_field_value(self, field):
         """
-        Given a db_field, return the corresponding value from the relevant sheet using the field mapping.
+        Given a field name, return the corresponding value from the relevant sheet
+        using the compact FIELD_MAP dictionary.
         """
-        # Look up mapping for this db_field
-        mapping = self.field_map_df[self.field_map_df["db_field"] == db_field]
+        # Look up mapping
+        mapping = self.field_map.get(field)
+        if not mapping:
+            return None  # field not found
 
-        if mapping.empty:
-            return None  # db_field not found in mapping
+        sheet_name = mapping["sheet_name"]
+        column_name = mapping["column"]
 
-        # There should be only one row in mapping per db_field
-        mapping_row = mapping.iloc[0]
-        sheet_name = mapping_row["sheet_name"]
-        column_name = mapping_row["column"]
+        # Sheet not loaded
+        df = self.nrc_dfs.get(sheet_name)
+        if df is None:
+            return None
 
-        # Query the sheet
-        if sheet_name not in self.nrc_dfs:
-            return None  # Sheet not loaded
+        # Filter rows by reportnum (SEQNOS)
+        rows = df[df["SEQNOS"] == self.reportnum]
+        if rows.empty:
+            return None
 
-        df = self.nrc_dfs[sheet_name]
-        row = df[df["SEQNOS"] == self.reportnum]
+        # Mimic existing behavior: use the last matching row
+        if column_name is None:
+            return None
 
-        if row.empty:
-            return None  # reportnum not found
-
-        # Choose the last listed material, mimicking the existing scraper functionality
-        item = row.iloc[-1][column_name]
+        item = rows.iloc[-1][column_name]
 
         if pd.isna(item):
             return None
-        else:
-            return item
+
+        return item
 
     def process_geoinformation(self):
         """
@@ -540,9 +539,7 @@ def main(excel_save_location=None, limit_incident_count=None):
     for reportnum in total_to_process:
         try:
             logging.info(f"Processing reportnum: {reportnum}")
-            nrc_incident = NrcIncident(
-                reportnum=reportnum, nrc_dfs=nrc_dfs, field_map_df=field_map_df
-            )
+            nrc_incident = NrcIncident(reportnum=reportnum, nrc_dfs=nrc_dfs)
             post_fields = nrc_incident.build_nrc_post()
             if post_fields:
                 logging.info(f"Inserted incident: {post_fields['title']} into feedentry.")
