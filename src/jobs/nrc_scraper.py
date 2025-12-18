@@ -99,7 +99,7 @@ def format_value_volume(value, units="gallons"):
     return f"{formatted_value} {units}"
 
 
-def computer_min_spill_volume(sheen_width_ft, sheen_length_ft):
+def compute_min_spill_volume(sheen_width_ft, sheen_length_ft):
     """
     Compute minimum spill volume based on sheen dimensions.
     Assumes a thickness of 1 micron for the sheen.
