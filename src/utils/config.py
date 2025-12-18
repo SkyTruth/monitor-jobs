@@ -4,6 +4,7 @@ import os
 # Planet API key
 PL_API_KEY = common.access_secret_version("skytruth-alerts2", "PL_API_KEY", "latest")
 ENVIRONMENT = os.getenv("ENVIRONMENT")  # Environment variable set in docker
+GEOCODING_API_KEY = common.access_secret_version("skytruth-alerts2", "GEOCODING_KEY", "latest")
 
 EMAIL_FROM_USER = "no-reply@skytruth.org"  # backend from user
 GMAIL_USER = "no-reply@skytruth.org"  # backend email user
