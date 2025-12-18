@@ -276,22 +276,22 @@ def process_geoinformation(nrc_dfs, reportnum):
         pass
     elif location and city and state:
         address = f"{location}, {city}, {state} {zip_code or ''}"
-        geo_results = geocodeAddress(address, "street_address", task_id, state)
+        geo_results = geocodeAddress(address)
         precision = "street_address"
     elif incidentlocation and city and state:
         address = f"{incidentlocation} {city}, {state} {zip_code or ''}"
-        geo_results = geocodeAddress(address, "street_address", task_id, state)
+        geo_results = geocodeAddress(address)
         precision = "street_address"
     elif zip_code or (city and state):
         zip_code = str(int(zip_code))
         if zip_code:
             if len(zip_code) == 9:
                 zip_code = f"{zip_code[:5]}-{zip_code[5:]}"
-            geo_results = geocodeAddress(zip_code, "ZIP", task_id, state)
+            geo_results = geocodeAddress(zip_code)
             precision = "ZIP"
         elif city and state:
             address = f"{city}, {state}"
-            geo_results = geocodeAddress(address, "CITY_STATE", task_id, state)
+            geo_results = geocodeAddress(address)
             precision = "CITY_STATE"
     else:
         return 0.0, 0.0, "Unknown", None
@@ -306,13 +306,15 @@ def process_geoinformation(nrc_dfs, reportnum):
     return lat, lng, precision, geo_results
 
 
-def geocodeAddress(address, source, task_id, state):
-    geocode_url = "https://maps.googleapis.com/maps/api/geocode/json?%s" % urllib.parse.urlencode(
-        {
-            "address": address,
-            "sensor": "false",
-            "key": config.GEOCODING_API_KEY,  # Secret removed, lets move this to config file later
-        }
+def geocodeAddress(address):
+    geocode_url = "https://maps.googleapis.com/maps/api/geocode/json?{}".format(
+        urllib.parse.urlencode(
+            {
+                "address": address,
+                "sensor": "false",
+                "key": config.GEOCODING_API_KEY,
+            }
+        )
     )
 
     results = requests.get(geocode_url)
