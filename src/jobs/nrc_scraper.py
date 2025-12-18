@@ -197,307 +197,307 @@ def geocodeAddress(address):
     return results
 
 
-def get_field_value(nrc_dfs, field_map_df, reportnum, db_field):
-    """
-    Given a db_field and reportnum, return the corresponding value from the relevant sheet using the field mapping.
+class NrcIncident:
+    def __init__(self, reportnum, nrc_dfs, field_map_df):
+        self.reportnum = reportnum
+        self.nrc_dfs = nrc_dfs
+        self.field_map_df = field_map_df
+        self.task_id = self.get_field_value("task_id")
+        self.description = self.get_field_value("description")
+        self.incident_datetime = timestamp2datetime(self.get_field_value("incident_datetime"))
+        self.incidenttype = self.get_field_value("incidenttype")
+        self.location = self.get_field_value("location")
+        self.state = self.get_field_value("state")
+        self.nearestcity = self.get_field_value("nearestcity")
+        self.suspected_responsible_company = self.get_field_value("suspected_responsible_company")
+        self.medium_affected = self.get_field_value("medium_affected")
+        self.material_name = self.get_field_value("material_name")
+        self.full_report_url = "http://nrc.uscg.mil/	"
+        self.incident_location = self.get_field_value("incidentlocation")
+        self.sheen_length = self.get_field_value("sheen_size_length")
+        self.sheen_width = self.get_field_value("sheen_size_width")
+        self.sheen_length_unit = self.get_field_value("sheen_size_length_unit")
+        self.sheen_width_unit = self.get_field_value("sheen_size_width_unit")
+        self.lat = None
+        self.lng = None
+        self.zip_code = self.get_field_value("zip")
+        self.city = self.get_field_value("nearestcity")
+        self.state = self.get_field_value("state")
+        self.location = self.get_field_value("location")
+        self.incidentlocation = self.get_field_value("incidentlocation")
 
-    Parameters:
-        nrc_dfs (dict): dictionary of pandas DataFrames keyed by sheet name
-        field_map_df (pd.DataFrame): the field mapping DataFrame
-        reportnum (int/str): the unique identifier to query (maps to SEQNOS in sheets)
-        db_field (str): the target database field to look up
+        # Pull latitude DMS/quadrant fields
+        self.lat_deg = self.get_field_value("lat_degrees")
+        self.lat_min = self.get_field_value("lat_minutes")
+        self.lat_sec = self.get_field_value("lat_seconds")
+        self.lat_quad = self.get_field_value("lat_quadrant")
 
-    Returns:
-        value of the field for the given reportnum, or None if not found
-    """
-    # Look up mapping for this db_field
-    mapping = field_map_df[field_map_df["db_field"] == db_field]
+        # Pull longitude DMS/quadrant fields
+        self.lon_deg = self.get_field_value("lon_degrees")
+        self.lon_min = self.get_field_value("lon_minutes")
+        self.lon_sec = self.get_field_value("lon_seconds")
+        self.lon_quad = self.get_field_value("lon_quadrant")
 
-    if mapping.empty:
-        return None  # db_field not found in mapping
+        self.sheen_width_ft = (
+            normalize_unit(self.sheen_width_unit, float(self.sheen_width))[0]
+            if self.sheen_width
+            else None
+        )
+        self.sheen_length_ft = (
+            normalize_unit(self.sheen_length_unit, float(self.sheen_length))[0]
+            if self.sheen_length
+            else None
+        )
+        self.release_type = RELEASE_TYPE_DICT.get(self.material_name, None)
+        self.min_spill_volume = computer_min_spill_volume(self.sheen_width_ft, self.sheen_length_ft)
 
-    # There should be only one row in mapping per db_field
-    mapping_row = mapping.iloc[0]
-    sheet_name = mapping_row["sheet_name"]
-    column_name = mapping_row["column"]
+        self.reported_spill_volume = self.get_field_value("amount")
+        self.reported_spill_unit = self.get_field_value("unit")
+        self.reported_spill_volume, self.reported_spill_unit = (
+            normalize_unit(self.reported_spill_unit, float(self.reported_spill_volume))
+            if self.reported_spill_volume
+            else (None, None)
+        )
+        self.process_geoinformation()
 
-    # Query the sheet
-    if sheet_name not in nrc_dfs:
-        return None  # Sheet not loaded
+    def get_field_value(self, db_field):
+        """
+        Given a db_field and reportnum, return the corresponding value from the relevant sheet using the field mapping.
 
-    df = nrc_dfs[sheet_name]
-    row = df[df["SEQNOS"] == reportnum]
+        Parameters:
+            nrc_dfs (dict): dictionary of pandas DataFrames keyed by sheet name
+            field_map_df (pd.DataFrame): the field mapping DataFrame
+            reportnum (int/str): the unique identifier to query (maps to SEQNOS in sheets)
+            db_field (str): the target database field to look up
 
-    if row.empty:
-        return None  # reportnum not found
+        Returns:
+            value of the field for the given reportnum, or None if not found
+        """
+        # Look up mapping for this db_field
+        mapping = self.field_map_df[self.field_map_df["db_field"] == db_field]
 
-    # Choose the last listed material, mimicking the existing scraper functionality
-    item = row.iloc[-1][column_name]
+        if mapping.empty:
+            return None  # db_field not found in mapping
 
-    if pd.isna(item):
-        return None
-    else:
-        return item
+        # There should be only one row in mapping per db_field
+        mapping_row = mapping.iloc[0]
+        sheet_name = mapping_row["sheet_name"]
+        column_name = mapping_row["column"]
 
+        # Query the sheet
+        if sheet_name not in self.nrc_dfs:
+            return None  # Sheet not loaded
 
-def process_geoinformation(nrc_dfs, reportnum):
-    # Pull data from merged_data
-    task_id = get_field_value(nrc_dfs, field_map_df, reportnum, "task_id")
-    areaid = None  # get_field_value(nrc_dfs, field_map_df, reportnum, "areaid")
-    blockid = None  # get_field_value(nrc_dfs, field_map_df, reportnum, "blockid")
-    lat = None  # get_field_value(nrc_dfs, field_map_df, reportnum, "latitude")
-    lng = None  # get_field_value(nrc_dfs, field_map_df, reportnum, "longitude")
-    zip_code = get_field_value(nrc_dfs, field_map_df, reportnum, "zip")
-    city = get_field_value(nrc_dfs, field_map_df, reportnum, "nearestcity")
-    state = get_field_value(nrc_dfs, field_map_df, reportnum, "state")
-    location = get_field_value(nrc_dfs, field_map_df, reportnum, "location")
-    incidentlocation = get_field_value(nrc_dfs, field_map_df, reportnum, "incidentlocation")
-    locationstreet1 = get_field_value(nrc_dfs, field_map_df, reportnum, "locationstreet1")
-    locationstreet2 = get_field_value(nrc_dfs, field_map_df, reportnum, "locationstreet2")
+        df = self.nrc_dfs[sheet_name]
+        row = df[df["SEQNOS"] == self.reportnum]
 
-    # Pull latitude DMS/quadrant fields
-    lat_deg = get_field_value(nrc_dfs, field_map_df, reportnum, "lat_degrees")
-    lat_min = get_field_value(nrc_dfs, field_map_df, reportnum, "lat_minutes")
-    lat_sec = get_field_value(nrc_dfs, field_map_df, reportnum, "lat_seconds")
-    lat_quad = get_field_value(nrc_dfs, field_map_df, reportnum, "lat_quadrant")
+        if row.empty:
+            return None  # reportnum not found
 
-    # Pull longitude DMS/quadrant fields
-    lon_deg = get_field_value(nrc_dfs, field_map_df, reportnum, "lon_degrees")
-    lon_min = get_field_value(nrc_dfs, field_map_df, reportnum, "lon_minutes")
-    lon_sec = get_field_value(nrc_dfs, field_map_df, reportnum, "lon_seconds")
-    lon_quad = get_field_value(nrc_dfs, field_map_df, reportnum, "lon_quadrant")
+        # Choose the last listed material, mimicking the existing scraper functionality
+        item = row.iloc[-1][column_name]
 
-    # Compute decimal coordinates if all components exist
-
-    if None not in (lat_deg, lat_min, lat_sec, lat_quad):
-        lat = dms2dd(lat_deg, lat_min, lat_sec, lat_quad)
-    else:
-        lat = None
-    if None not in (lon_deg, lon_min, lon_sec, lon_quad):
-        lng = dms2dd(lon_deg, lon_min, lon_sec, lon_quad)
-    else:
-        lng = None
-
-    address = None
-    geo_results = None
-    precision = "Explicit"
-
-    incidenttype = get_field_value(nrc_dfs, field_map_df, reportnum, "incidenttype")
-
-    # Correct hemisphere placeholder
-    if lat or lng:
-        lat, lng = correct_hemisphere(lat, lng, state)
-    # Placeholder for block centroid geocode
-
-    if lat and lng:
-        pass
-    elif location and city and state:
-        address = f"{location}, {city}, {state} {zip_code or ''}"
-        geo_results = geocodeAddress(address)
-        precision = "street_address"
-    elif incidentlocation and city and state:
-        address = f"{incidentlocation} {city}, {state} {zip_code or ''}"
-        geo_results = geocodeAddress(address)
-        precision = "street_address"
-    elif zip_code or (city and state):
-        zip_code = str(int(zip_code))
-        if zip_code:
-            if len(zip_code) == 9:
-                zip_code = f"{zip_code[:5]}-{zip_code[5:]}"
-            geo_results = geocodeAddress(zip_code)
-            precision = "ZIP"
-        elif city and state:
-            address = f"{city}, {state}"
-            geo_results = geocodeAddress(address)
-            precision = "CITY_STATE"
-    else:
-        return 0.0, 0.0, "Unknown", None
-    if lat is None or lng is None:
-        if len(geo_results["results"]) > 0:
-            lat, lng = geo_results["results"][0]["geometry"]["location"].values()
-            lat = float(lat)
-            lng = float(lng)
+        if pd.isna(item):
+            return None
         else:
-            logging.error("No geocode results=", task_id)
-            raise ValueError("No geocode results=" + str(task_id))
-    return lat, lng, precision, geo_results
+            return item
 
+    def process_geoinformation(self):
+        # Compute decimal coordinates if all components exist
 
-def build_nrc_post(nrc_dfs, reportnum):
-    task_id = get_field_value(nrc_dfs, field_map_df, reportnum, "task_id")
-    description = get_field_value(nrc_dfs, field_map_df, reportnum, "description")
-    incident_datetime = timestamp2datetime(
-        get_field_value(nrc_dfs, field_map_df, reportnum, "incident_datetime")
-    )
-    incidenttype = get_field_value(nrc_dfs, field_map_df, reportnum, "incidenttype")
-    location = get_field_value(nrc_dfs, field_map_df, reportnum, "location")
-    state = get_field_value(nrc_dfs, field_map_df, reportnum, "state")
-    nearestcity = get_field_value(nrc_dfs, field_map_df, reportnum, "nearestcity")
-    suspected_responsible_company = get_field_value(
-        nrc_dfs, field_map_df, reportnum, "suspected_responsible_company"
-    )
-    medium_affected = get_field_value(nrc_dfs, field_map_df, reportnum, "medium_affected")
-    material_name = get_field_value(nrc_dfs, field_map_df, reportnum, "material_name")
-    full_report_url = "http://nrc.uscg.mil/	"
-    incident_location = get_field_value(nrc_dfs, field_map_df, reportnum, "incidentlocation")
-    reported_spill_volume = get_field_value(nrc_dfs, field_map_df, reportnum, "amount")
-    reported_spill_unit = get_field_value(nrc_dfs, field_map_df, reportnum, "unit")
+        if None not in (self.lat_deg, self.lat_min, self.lat_sec, self.lat_quad):
+            self.lat = dms2dd(self.lat_deg, self.lat_min, self.lat_sec, self.lat_quad)
+        else:
+            self.lat = None
+        if None not in (self.lon_deg, self.lon_min, self.lon_sec, self.lon_quad):
+            self.lng = dms2dd(self.lon_deg, self.lon_min, self.lon_sec, self.lon_quad)
+        else:
+            self.lng = None
 
-    reported_spill_volume, reported_spill_unit = (
-        normalize_unit(reported_spill_unit, float(reported_spill_volume))
-        if reported_spill_volume
-        else (None, None)
-    )
+        self.address = None
+        self.geo_results = None
+        self.precision = "Explicit"
 
-    lat, lng, precision, geo_results = process_geoinformation(nrc_dfs, reportnum)
-    if precision == "Explicit":
-        source = "Explicit"
-    elif geo_results is not None:
-        source = "Approximated from " + geo_results["results"][0]["types"][0]
-    else:
-        source = "Unknown"
-    sheen_length = get_field_value(nrc_dfs, field_map_df, reportnum, "sheen_size_length")
-    sheen_width = get_field_value(nrc_dfs, field_map_df, reportnum, "sheen_size_width")
-    sheen_length_unit = get_field_value(nrc_dfs, field_map_df, reportnum, "sheen_size_length_unit")
-    sheen_width_unit = get_field_value(nrc_dfs, field_map_df, reportnum, "sheen_size_width_unit")
+        # Correct hemisphere placeholder
+        if self.lat or self.lng:
+            self.lat, self.lng = correct_hemisphere(self.lat, self.lng, self.state)
+        # Placeholder for block centroid geocode
 
-    sheen_width_ft = (
-        normalize_unit(sheen_width_unit, float(sheen_width))[0] if sheen_width else None
-    )
-    sheen_length_ft = (
-        normalize_unit(sheen_length_unit, float(sheen_length))[0] if sheen_length else None
-    )
+        if self.lat and self.lng:
+            pass
+        elif self.location and self.city and self.state:
+            self.address = f"{self.location}, {self.city}, {self.state} {self.zip_code or ''}"
+            self.geo_results = geocodeAddress(self.address)
+            self.precision = "street_address"
+        elif self.incidentlocation and self.city and self.state:
+            self.address = (
+                f"{self.incidentlocation} {self.city}, {self.state} {self.zip_code or ''}"
+            )
+            self.geo_results = geocodeAddress(self.address)
+            self.precision = "street_address"
+        elif self.zip_code or (self.city and self.state):
+            self.zip_code = str(int(self.zip_code))
+            if self.zip_code:
+                if len(self.zip_code) == 9:
+                    self.zip_code = f"{self.zip_code[:5]}-{self.zip_code[5:]}"
+                self.geo_results = geocodeAddress(self.zip_code)
+                self.precision = "ZIP"
+            elif self.city and self.state:
+                self.address = f"{self.city}, {self.state}"
+                self.geo_results = geocodeAddress(self.address)
+                self.precision = "CITY_STATE"
+        if self.lat is None or self.lng is None:
+            if len(self.geo_results["results"]) > 0:
+                self.lat, self.lng = self.geo_results["results"][0]["geometry"]["location"].values()
+                self.lat = float(self.lat)
+                self.lng = float(self.lng)
+            else:
+                logging.error("No geocode results=", self.task_id)
+                raise ValueError("No geocode results=" + str(self.task_id))
 
-    release_type = RELEASE_TYPE_DICT.get(material_name, None)
+        if self.precision == "Explicit":
+            self.source = "Explicit"
+        elif self.geo_results is not None:
+            self.source = "Approximated from " + self.geo_results["results"][0]["types"][0]
+        else:
+            self.source = "Unknown"
 
-    min_spill_volume = computer_min_spill_volume(sheen_width_ft, sheen_length_ft)
+    def build_nrc_post(self):
+        tags = []
+        severity = ""
 
-    tags = []
-    severity = ""
+        tags.append("NRC")
+        if self.reported_spill_volume is None:
+            self.reported_spill_volume = 0
+        if self.release_type is not None:
+            tags.append(self.release_type)
+        if (self.reported_spill_volume > 100) and self.reported_spill_unit == "GALLON":
+            tags.append("BigSpill")
+        if self.incidenttype == "RAILROAD NON-RELEASE" or self.medium_affected in (
+            "NON-RELEASE (N/A)",
+            "RAIL REPORT (N/A)",
+        ):
+            tags.append("non-release")
+            severity = "non-release"
+        if (
+            self.reported_spill_volume < 42
+            and self.min_spill_volume < 42
+            and re.match("HYDRAULIC", self.material_name or "")
+            or self.material_name
+            in ("REFRIGERANT GASES", "OIL, FUEL: NO. 1-D", "OIL, FUEL: NO. 2-D")
+        ):
+            tags.append("minor")
+            severity = "minor"
+        if (
+            self.incidenttype == "UNKNOWN SHEEN"
+            and self.reported_spill_volume < 1
+            and self.min_spill_volume < 10
+        ):
+            tags.append("minor")
+        if self.reported_spill_volume > 100 or self.min_spill_volume > 100:
+            tags.append("major")
 
-    tags.append("NRC")
-    if reported_spill_volume is None:
-        reported_spill_volume = 0
-    if release_type is not None:
-        tags.append(release_type)
-    if (reported_spill_volume > 100) and reported_spill_unit == "GALLON":
-        tags.append("BigSpill")
-    if incidenttype == "RAILROAD NON-RELEASE" or medium_affected in (
-        "NON-RELEASE (N/A)",
-        "RAIL REPORT (N/A)",
-    ):
-        tags.append("non-release")
-        severity = "non-release"
-    if (
-        reported_spill_volume < 42
-        and min_spill_volume < 42
-        and re.match("HYDRAULIC", material_name or "")
-        or material_name in ("REFRIGERANT GASES", "OIL, FUEL: NO. 1-D", "OIL, FUEL: NO. 2-D")
-    ):
-        tags.append("minor")
-        severity = "minor"
-    if incidenttype == "UNKNOWN SHEEN" and reported_spill_volume < 1 and min_spill_volume < 10:
-        tags.append("minor")
-    if reported_spill_volume > 100 or min_spill_volume > 100:
-        tags.append("major")
+        if self.state == "LA" and severity != "minor" and severity != "non-release":
+            tags.append("LABB")
 
-    if state == "LA" and severity != "minor" and severity != "non-release":
-        tags.append("LABB")
+        tags.append("release")
 
-    tags.append("release")
+        if self.material_name == None:
+            self.material_name = ""
 
-    if material_name == None:
-        material_name = ""
-
-    title = "NRC Report: " + material_name.title()
-    if nearestcity and state:
-        title += " near " + nearestcity.title() + ", " + state
-    link = full_report_url
-    summary = "Incident Type: " + incidenttype + " - NRC Report ID: " + str(task_id)
-    if medium_affected:
-        summary += " - Medium Affected: " + medium_affected
-    summary += " - Suspected Responsible Party: "
-    if suspected_responsible_company:
-        summary += suspected_responsible_company
-    content = (
-        '<b>Report Details</b><br/>NRC Report ID: <a href="https://nrc.uscg.mil/" target="_blank">'
-        + str(task_id)
-    )
-    if incident_datetime:
-        content += "</a><br/>Incident Time: " + str(incident_datetime)
-    if nearestcity or state:
-        content += "<br/>Nearest City: "
-        if nearestcity:
-            content += nearestcity.title() + ", "
-        if state:
-            content += state
-    if location:
-        content += "<br/>Location: " + location
-    if incident_location:
-        content += "<br/>Location2: " + incident_location
-    if incidenttype:
-        content += "<br/>Incident Type: " + incidenttype
-    if material_name:
-        content += "<br/>Material: " + material_name
-    if medium_affected:
-        content += "<br/>Medium Affected: " + medium_affected
-    if suspected_responsible_company:
-        content += "<br/>Suspected Responsible Party: " + suspected_responsible_company
-
-    content += (
-        "<br/><b>SkyTruth Analysis</b><br/>"
-        + "Lat/Long: "
-        + str(round(lat, 6))
-        + ", "
-        + str(round(lng, 6))
-        + " ("
-        + source
-        + ") "
-        + '<a href="https://skytruth.org/section/alerts-geocoding/" target="_blank">'
-        + '<img src="/images/icons8-info-20.png" align="center" /></a>'
-    )
-    if sheen_width_ft and sheen_length_ft:
-        content += (
-            "<br/>"
-            + "Reported Sheen Size: "
-            + format_value_extent(sheen_width_ft)
-            + " by "
-            + format_value_extent(sheen_length_ft)
-            + " (area "
-            + format_value_area(sheen_width_ft * sheen_length_ft)
-            + ")"
+        title = "NRC Report: " + self.material_name.title()
+        if self.nearestcity and self.state:
+            title += " near " + self.nearestcity.title() + ", " + self.state
+        link = self.full_report_url
+        summary = "Incident Type: " + self.incidenttype + " - NRC Report ID: " + str(self.task_id)
+        if self.medium_affected:
+            summary += " - Medium Affected: " + self.medium_affected
+        summary += " - Suspected Responsible Party: "
+        if self.suspected_responsible_company:
+            summary += self.suspected_responsible_company
+        content = (
+            '<b>Report Details</b><br/>NRC Report ID: <a href="https://nrc.uscg.mil/" target="_blank">'
+            + str(self.task_id)
         )
-    if reported_spill_volume:
-        content += (
-            "<br/>"
-            + "Reported Spill Volume: "
-            + str(int(reported_spill_volume))
-            + " "
-            + reported_spill_unit.lower()
-        )
-    if min_spill_volume:
-        content += "<br/>" + "SkyTruth Minimum Estimate: " + format_value_volume(min_spill_volume)
-    content += "<br/>" + "<b>Report Description</b>" + description
+        if self.incident_datetime:
+            content += "</a><br/>Incident Time: " + str(self.incident_datetime)
+        if self.nearestcity or self.state:
+            content += "<br/>Nearest City: "
+            if self.nearestcity:
+                content += self.nearestcity.title() + ", "
+            if self.state:
+                content += self.state
+        if self.location:
+            content += "<br/>Location: " + self.location
+        if self.incident_location:
+            content += "<br/>Location2: " + self.incident_location
+        if self.incidenttype:
+            content += "<br/>Incident Type: " + self.incidenttype
+        if self.material_name:
+            content += "<br/>Material: " + self.material_name
+        if self.medium_affected:
+            content += "<br/>Medium Affected: " + self.medium_affected
+        if self.suspected_responsible_company:
+            content += "<br/>Suspected Responsible Party: " + self.suspected_responsible_company
 
-    id = hashlib.md5((summary + str(incident_datetime) + str(lat) + str(lng)).encode()).hexdigest()
-    id = "-".join((id[:8], id[8:12], id[12:16], id[16:20], id[20:32]))
-    post_fields = {
-        "id": id,
-        "title": title,
-        "link": link,
-        "summary": summary,
-        "content": content,
-        "lat": lat,
-        "lng": lng,
-        "source_id": 1,
-        "kml_url": "",
-        "incident_datetime": incident_datetime,
-        "source_item_id": task_id,
-        "tags": tags,
-        "status": "published",
-        "bot_reportnum_done": task_id,
-    }
-    return post_fields
+        content += (
+            "<br/><b>SkyTruth Analysis</b><br/>"
+            + "Lat/Long: "
+            + str(round(self.lat, 6))
+            + ", "
+            + str(round(self.lng, 6))
+            + " ("
+            + self.source
+            + ") "
+            + '<a href="https://skytruth.org/section/alerts-geocoding/" target="_blank">'
+            + '<img src="/images/icons8-info-20.png" align="center" /></a>'
+        )
+        if self.sheen_width_ft and self.sheen_length_ft:
+            content += (
+                "<br/>"
+                + "Reported Sheen Size: "
+                + format_value_extent(self.sheen_width_ft)
+                + " by "
+                + format_value_extent(self.sheen_length_ft)
+                + " (area "
+                + format_value_area(self.sheen_width_ft * self.sheen_length_ft)
+                + ")"
+            )
+        if self.reported_spill_volume:
+            content += (
+                "<br/>"
+                + "Reported Spill Volume: "
+                + str(int(self.reported_spill_volume))
+                + " "
+                + self.reported_spill_unit.lower()
+            )
+        if self.min_spill_volume:
+            content += (
+                "<br/>" + "SkyTruth Minimum Estimate: " + format_value_volume(self.min_spill_volume)
+            )
+        content += "<br/>" + "<b>Report Description</b>" + self.description
+
+        id = hashlib.md5(
+            (summary + str(self.incident_datetime) + str(self.lat) + str(self.lng)).encode()
+        ).hexdigest()
+        id = "-".join((id[:8], id[8:12], id[12:16], id[16:20], id[20:32]))
+        post_fields = {
+            "id": id,
+            "title": title,
+            "link": link,
+            "summary": summary,
+            "content": content,
+            "lat": self.lat,
+            "lng": self.lng,
+            "source_id": 1,
+            "kml_url": "",
+            "incident_datetime": self.incident_datetime,
+            "source_item_id": self.task_id,
+            "tags": tags,
+            "status": "published",
+            "bot_reportnum_done": self.task_id,
+        }
+        return post_fields
 
 
 def main(excel_save_location=None, limit_incident_count=None):
@@ -540,7 +540,10 @@ def main(excel_save_location=None, limit_incident_count=None):
     for reportnum in total_to_process:
         try:
             logging.info(f"Processing reportnum: {reportnum}")
-            post_fields = build_nrc_post(nrc_dfs, reportnum)
+            nrc_incident = NrcIncident(
+                reportnum=reportnum, nrc_dfs=nrc_dfs, field_map_df=field_map_df
+            )
+            post_fields = nrc_incident.build_nrc_post()
             if post_fields:
                 logging.info(f"Inserted incident: {post_fields['title']} into feedentry.")
                 url = config.API_POST_FEEDENTRY
