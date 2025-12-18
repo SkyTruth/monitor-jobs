@@ -26,6 +26,7 @@ dependencies = [
     "psycopg2-binary >=2.9.10",
     "numpy >=1.24.4",
     "google-cloud-secret-manager >=2.11.1",
+    "google-cloud-storage (>=3.7.0,<4.0.0)",
 ]
 
 

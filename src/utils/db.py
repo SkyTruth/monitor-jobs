@@ -254,12 +254,10 @@ def get_next_uploaded_tiff():
 def get_file_upload(storage_file_path):
     conn = None
     file_upload = None
-    # print(storage_file_path)
     try:
         conn = psycopg2.connect(config.DB_CONNECTION_STRING)
         cur = conn.cursor()
         sql = """SELECT * FROM file_uploads WHERE storage_file_path='%s' """ % (storage_file_path)
-        # print('sql:', sql)
         cur.execute(sql)
         file_upload = cur.fetchone()
         cur.close()
@@ -290,7 +288,6 @@ def get_next_uploaded_tiff_missing_coords():
 
 
 def upd_file_upload(storage_file_path, status, message, latitude=None, longitude=None):
-    # print('upd_file_upload:', storage_file_path, status, message, latitude, longitude, flush=True)
     conn = None
     try:
         conn = psycopg2.connect(config.DB_CONNECTION_STRING)
@@ -321,13 +318,11 @@ def insert_file_upload(
     latitude=None,
     longitude=None,
 ):
-    # print('insert_file_upload:', storage_file_path, status, message, latitude, longitude, flush=True)
     conn = None
     try:
         dt = datetime.now()
         conn = psycopg2.connect(config.DB_CONNECTION_STRING)
         cur = conn.cursor()
-        # if latitude != None and latitude != "NULL" and longitude != None and longitude != "NULL":
         sql = """
         INSERT INTO public.file_uploads(
         storage_bucket, file_name, email, user_id, status, datetime_uploaded, storage_file_path, file_size, latitude, longitude, message, file_label)
@@ -350,9 +345,6 @@ def insert_file_upload(
                 file_name,
             ),
         )
-        # else:
-        #     sql = '''UPDATE file_uploads SET status=%s, message=%s WHERE storage_file_path=%s'''
-        #     cur.execute(sql, (status, message, storage_file_path))
         conn.commit()
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
