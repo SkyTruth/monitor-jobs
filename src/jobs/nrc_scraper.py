@@ -201,27 +201,33 @@ class NrcIncident:
     """
 
     def __init__(self, reportnum, nrc_dfs):
+        # ---------------------------------------------------
+        # Important data structures and constants
+        # ---------------------------------------------------
+
         self.reportnum = reportnum
         self.nrc_dfs = nrc_dfs
         self.field_map = FIELD_MAP
+        self.full_report_url = "http://nrc.uscg.mil/"
+        self.lat = None
+        self.lng = None
+
+        # ---------------------------------------------------
+        # Incident commons information
+        # ---------------------------------------------------
+
         self.task_id = self.get_field_value("task_id")
         self.description = self.get_field_value("description")
         self.incident_datetime = timestamp2datetime(self.get_field_value("incident_datetime"))
-        self.incidenttype = self.get_field_value("incidenttype")
-        self.location = self.get_field_value("location")
-        self.state = self.get_field_value("state")
-        self.nearestcity = self.get_field_value("nearestcity")
         self.suspected_responsible_company = self.get_field_value("suspected_responsible_company")
-        self.medium_affected = self.get_field_value("medium_affected")
-        self.material_name = self.get_field_value("material_name")
-        self.full_report_url = "http://nrc.uscg.mil/	"
+        self.incidenttype = self.get_field_value("incidenttype")
+
+        # ---------------------------------------------------
+        # Geolocation information
+        # ---------------------------------------------------
+
+        self.nearestcity = self.get_field_value("nearestcity")
         self.incident_location = self.get_field_value("incidentlocation")
-        self.sheen_length = self.get_field_value("sheen_size_length")
-        self.sheen_width = self.get_field_value("sheen_size_width")
-        self.sheen_length_unit = self.get_field_value("sheen_size_length_unit")
-        self.sheen_width_unit = self.get_field_value("sheen_size_width_unit")
-        self.lat = None
-        self.lng = None
         self.zip_code = self.get_field_value("zip")
         self.city = self.get_field_value("nearestcity")
         self.state = self.get_field_value("state")
@@ -239,6 +245,17 @@ class NrcIncident:
         self.lon_min = self.get_field_value("lon_minutes")
         self.lon_sec = self.get_field_value("lon_seconds")
         self.lon_quad = self.get_field_value("lon_quadrant")
+
+        # ---------------------------------------------------
+        # Spill and Material Details
+        # ---------------------------------------------------
+
+        self.medium_affected = self.get_field_value("medium_affected")
+        self.material_name = self.get_field_value("material_name")
+        self.sheen_length = self.get_field_value("sheen_size_length")
+        self.sheen_width = self.get_field_value("sheen_size_width")
+        self.sheen_length_unit = self.get_field_value("sheen_size_length_unit")
+        self.sheen_width_unit = self.get_field_value("sheen_size_width_unit")
 
         self.sheen_width_ft = (
             normalize_unit(self.sheen_width_unit, float(self.sheen_width))[0]
