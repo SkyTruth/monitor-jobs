@@ -348,17 +348,17 @@ class NrcIncident:
             )
             self.geo_results = geocodeAddress(self.address)
             self.precision = "street_address"
-        elif self.zip_code or (self.city and self.state):
+        elif self.zip_code:
             self.zip_code = str(int(self.zip_code))
-            if self.zip_code:
-                if len(self.zip_code) == 9:
-                    self.zip_code = f"{self.zip_code[:5]}-{self.zip_code[5:]}"
-                self.geo_results = geocodeAddress(self.zip_code)
-                self.precision = "ZIP"
-            elif self.city and self.state:
-                self.address = f"{self.city}, {self.state}"
-                self.geo_results = geocodeAddress(self.address)
-                self.precision = "CITY_STATE"
+            if len(self.zip_code) == 9:
+                self.zip_code = f"{self.zip_code[:5]}-{self.zip_code[5:]}"
+                
+            self.geo_results = geocodeAddress(self.zip_code)
+            self.precision = "ZIP"
+        elif self.city and self.state:
+            self.address = f"{self.city}, {self.state}"
+            self.geo_results = geocodeAddress(self.address)
+            self.precision = "CITY_STATE"
         if self.lat is None or self.lng is None:
             if len(self.geo_results["results"]) > 0:
                 self.lat, self.lng = self.geo_results["results"][0]["geometry"]["location"].values()
