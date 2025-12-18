@@ -198,6 +198,10 @@ def geocodeAddress(address):
 
 
 class NrcIncident:
+    """
+    Represents a single NRC incident report, with methods to extract fields and build a post.
+    """
+
     def __init__(self, reportnum, nrc_dfs, field_map_df):
         self.reportnum = reportnum
         self.nrc_dfs = nrc_dfs
@@ -262,16 +266,7 @@ class NrcIncident:
 
     def get_field_value(self, db_field):
         """
-        Given a db_field and reportnum, return the corresponding value from the relevant sheet using the field mapping.
-
-        Parameters:
-            nrc_dfs (dict): dictionary of pandas DataFrames keyed by sheet name
-            field_map_df (pd.DataFrame): the field mapping DataFrame
-            reportnum (int/str): the unique identifier to query (maps to SEQNOS in sheets)
-            db_field (str): the target database field to look up
-
-        Returns:
-            value of the field for the given reportnum, or None if not found
+        Given a db_field, return the corresponding value from the relevant sheet using the field mapping.
         """
         # Look up mapping for this db_field
         mapping = self.field_map_df[self.field_map_df["db_field"] == db_field]
@@ -303,7 +298,9 @@ class NrcIncident:
             return item
 
     def process_geoinformation(self):
-        # Compute decimal coordinates if all components exist
+        """
+        Process geoinformation for the incident, including converting DMS to decimal degrees and geocoding if necessary.
+        """
 
         if None not in (self.lat_deg, self.lat_min, self.lat_sec, self.lat_quad):
             self.lat = dms2dd(self.lat_deg, self.lat_min, self.lat_sec, self.lat_quad)
@@ -363,6 +360,9 @@ class NrcIncident:
             self.source = "Unknown"
 
     def build_nrc_post(self):
+        """
+        Compile NRC information into a post_fields object to be posted to monitor feedentry
+        """
         tags = []
         severity = ""
 
