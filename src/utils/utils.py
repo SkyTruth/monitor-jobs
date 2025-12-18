@@ -64,22 +64,6 @@ FIELD_MAP = {
         "sheet_name": "MATERIAL_INVOLVED",
         "column": "NAME_OF_MATERIAL",
     },
-    "reached_water": {
-        "sheet_name": "MATERIAL_INVOLVED",
-        "column": "IF_REACHED_WATER",
-    },
-    "amt_in_water": {
-        "sheet_name": "MATERIAL_INVOLVED",
-        "column": "AMOUNT_IN_WATER",
-    },
-    "amt_in_water_unit": {
-        "sheet_name": "MATERIAL_INVOLVED",
-        "column": "UNIT_OF_MEASURE_REACH_WATER",
-    },
-    "chris_code": {
-        "sheet_name": "MATERIAL_INVOLVED",
-        "column": "CHRIS_CODE",
-    },
     "amount": {
         "sheet_name": "MATERIAL_INVOLVED",
         "column": "AMOUNT_OF_MATERIAL",
@@ -87,26 +71,6 @@ FIELD_MAP = {
     "unit": {
         "sheet_name": "MATERIAL_INVOLVED",
         "column": "UNIT_OF_MEASURE",
-    },
-    "ft_id": {
-        "sheet_name": "CALLS",
-        "column": None,
-    },
-    "st_id": {
-        "sheet_name": "CALLS",
-        "column": None,
-    },
-    "full_report_url": {
-        "sheet_name": "CALLS",
-        "column": None,
-    },
-    "materials_url": {
-        "sheet_name": "CALLS",
-        "column": None,
-    },
-    "time_stamp": {
-        "sheet_name": "CALLS",
-        "column": None,
     },
     "lat_degrees": {
         "sheet_name": "INCIDENT_COMMONS",
@@ -159,10 +123,6 @@ FIELD_MAP = {
     "sheen_size_length_unit": {
         "sheet_name": "INCIDENT_DETAILS",
         "column": "SHEEN_SIZE_LENGTH_UNITS",
-    },
-    "affected_area": {
-        "sheet_name": "INCIDENT_COMMONS",
-        "column": None,
     },
     "task_id": {
         "sheet_name": "INCIDENT_COMMONS",
