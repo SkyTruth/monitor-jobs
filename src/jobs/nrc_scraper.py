@@ -534,8 +534,8 @@ def main(excel_save_location=None, limit_incident_count=None):
     db_cursor = db_conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     last_posted_reportnum = get_last_posted_reportnum(db_cursor)[0]
     nrc_dfs = pd.read_excel(excel_save_location + "/" + file_name, sheet_name=nrc_sheets)
-    INCIDENT_COMMONS = nrc_dfs["INCIDENT_COMMONS"]
-    most_recent_reportnum = INCIDENT_COMMONS["SEQNOS"].max()
+    incident_commons = nrc_dfs["INCIDENT_COMMONS"]
+    most_recent_reportnum = incident_commons["SEQNOS"].max()
     logging.info(
         f"Last posted reportnum: {last_posted_reportnum}",
     )
@@ -543,7 +543,7 @@ def main(excel_save_location=None, limit_incident_count=None):
         f"Most recent reportnum in NRC data: {most_recent_reportnum}",
     )
     total_to_process = (
-        INCIDENT_COMMONS[INCIDENT_COMMONS["SEQNOS"] > last_posted_reportnum]["SEQNOS"]
+        incident_commons[incident_commons["SEQNOS"] > last_posted_reportnum]["SEQNOS"]
         .unique()
         .tolist()
     )
