@@ -17,6 +17,7 @@ import os
 import locale
 from src.utils import config
 import logging
+from src.utils.db import NrcDatabase
 
 logging.basicConfig(level=logging.INFO)
 
@@ -133,13 +134,6 @@ def download(url, destination_folder, filename):
         f.write(response.read())
 
     return destination_path
-
-
-def get_last_posted_reportnum(db_cursor):
-    query = """SELECT source_item_id from feedentry where source_id=1 AND source_item_id>0 AND status='published' 
-        order by source_item_id DESC LIMIT 1"""
-    db_cursor.execute(query)
-    return db_cursor.fetchone()
 
 
 def dms2dd(degrees, minutes, seconds, quadrant):
@@ -529,10 +523,8 @@ def main(excel_save_location=None, limit_incident_count=None):
         "INCIDENT_DETAILS",
         "MATERIAL_INVOLVED",
     ]
-    db_conn = psycopg2.connect(config.DB_CONNECTION_STRING)
-    db_conn.autocommit = True
-    db_cursor = db_conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    last_posted_reportnum = get_last_posted_reportnum(db_cursor)[0]
+    db = NrcDatabase()
+    last_posted_reportnum = db.get_last_posted_reportnum()[0]
     nrc_dfs = pd.read_excel(excel_save_location + "/" + file_name, sheet_name=nrc_sheets)
     incident_commons = nrc_dfs["INCIDENT_COMMONS"]
     most_recent_reportnum = incident_commons["SEQNOS"].max()

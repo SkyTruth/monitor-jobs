@@ -392,6 +392,15 @@ class NrcDatabase:
         self.table_keyfields = {}
         # print('NrcDatabase __init__ 2')
 
+    def get_last_posted_reportnum(self, db_cursor):
+        db_conn = psycopg2.connect(self.db_connection_string)
+        db_conn.autocommit = True
+        db_cursor = db_conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        query = """SELECT source_item_id from feedentry where source_id=1 AND source_item_id>0 AND status='published' 
+            order by source_item_id DESC LIMIT 1"""
+        db_cursor.execute(query)
+        return db_cursor.fetchone()
+
     def connect(self):
         try:
             self.db = psycopg2.connect(self.db_connection_string)
