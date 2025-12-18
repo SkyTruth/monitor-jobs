@@ -144,6 +144,59 @@ def get_last_posted_reportnum(db_cursor):
     return db_cursor.fetchone()
 
 
+def dms2dd(degrees, minutes, seconds, quadrant):
+    """
+    Convert degrees, minutes, seconds, quadrant to decimal degrees
+
+    :param degrees: coordinate degrees
+    :type degrees: int
+    :param minutes: coordinate minutes
+    :type minutes: int
+    :param seconds: coordinate seconds
+    :type seconds: int
+    :param quadrant: coordinate quadrant (N, E, S, W)
+    :type quadrant: str|unicode
+
+    :return: decimal degrees
+    :rtype: float
+    """
+
+    illegal_vals = (None, "", "")
+    for iv in illegal_vals:
+        if iv in (degrees, minutes, seconds, quadrant):
+            logging.error("ERROR: Illegal value: %s" % iv)
+            raise ValueError("ERROR: Illegal value: %s" % iv)
+
+    if quadrant.lower() not in ("n", "e", "s", "w"):
+        logging.error("ERROR: Invalid quadrant: %s" % quadrant)
+        raise ValueError("ERROR: Invalid quadrant: %s" % quadrant)
+    # 9/21/2020
+    # Round to 6 decimals
+    output = round(int(degrees) + int(minutes) / 60 + int(seconds) / 3600, 6)
+
+    if quadrant.lower() in ("s", "w"):
+        output *= -1
+
+    return output
+
+
+def geocodeAddress(address):
+    geocode_url = "https://maps.googleapis.com/maps/api/geocode/json?{}".format(
+        urllib.parse.urlencode(
+            {
+                "address": address,
+                "sensor": "false",
+                "key": config.GEOCODING_API_KEY,
+            }
+        )
+    )
+
+    results = requests.get(geocode_url)
+    # Results will be in JSON format - convert to dict using requests functionality
+    results = results.json()
+    return results
+
+
 def get_field_value(nrc_dfs, field_map_df, reportnum, db_field):
     """
     Given a db_field and reportnum, return the corresponding value from the relevant sheet using the field mapping.
@@ -185,42 +238,6 @@ def get_field_value(nrc_dfs, field_map_df, reportnum, db_field):
         return None
     else:
         return item
-
-
-def dms2dd(degrees, minutes, seconds, quadrant):
-    """
-    Convert degrees, minutes, seconds, quadrant to decimal degrees
-
-    :param degrees: coordinate degrees
-    :type degrees: int
-    :param minutes: coordinate minutes
-    :type minutes: int
-    :param seconds: coordinate seconds
-    :type seconds: int
-    :param quadrant: coordinate quadrant (N, E, S, W)
-    :type quadrant: str|unicode
-
-    :return: decimal degrees
-    :rtype: float
-    """
-
-    illegal_vals = (None, "", "")
-    for iv in illegal_vals:
-        if iv in (degrees, minutes, seconds, quadrant):
-            logging.error("ERROR: Illegal value: %s" % iv)
-            raise ValueError("ERROR: Illegal value: %s" % iv)
-
-    if quadrant.lower() not in ("n", "e", "s", "w"):
-        logging.error("ERROR: Invalid quadrant: %s" % quadrant)
-        raise ValueError("ERROR: Invalid quadrant: %s" % quadrant)
-    # 9/21/2020
-    # Round to 6 decimals
-    output = round(int(degrees) + int(minutes) / 60 + int(seconds) / 3600, 6)
-
-    if quadrant.lower() in ("s", "w"):
-        output *= -1
-
-    return output
 
 
 def process_geoinformation(nrc_dfs, reportnum):
@@ -304,23 +321,6 @@ def process_geoinformation(nrc_dfs, reportnum):
             logging.error("No geocode results=", task_id)
             raise ValueError("No geocode results=" + str(task_id))
     return lat, lng, precision, geo_results
-
-
-def geocodeAddress(address):
-    geocode_url = "https://maps.googleapis.com/maps/api/geocode/json?{}".format(
-        urllib.parse.urlencode(
-            {
-                "address": address,
-                "sensor": "false",
-                "key": config.GEOCODING_API_KEY,
-            }
-        )
-    )
-
-    results = requests.get(geocode_url)
-    # Results will be in JSON format - convert to dict using requests functionality
-    results = results.json()
-    return results
 
 
 def build_nrc_post(nrc_dfs, reportnum):
