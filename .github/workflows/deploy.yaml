@@ -6,6 +6,10 @@ on:
     branches: [ main ]
 
 jobs:
+# -------------------------------
+#   BUILD / DEPLOY IMAGE
+# ----------------------------
+
   build-and-push-docker:
     runs-on: ubuntu-latest
     permissions:
@@ -33,6 +37,10 @@ jobs:
             --config ./infrastructure/cloudbuild.image.yaml \
             --substitutions=_COMMIT_SHA=$SHORT_SHA
 
+# -------------------------------
+#   EMAIL ALERTS
+# ----------------------------
+
   deploy-email-alerts:
     needs: build-and-push-docker
     uses: ./.github/workflows/deploy-job.yaml
@@ -40,7 +48,6 @@ jobs:
       job_name: "email-alerts"
       job_path: "src.jobs.test"
 
-  
   deploy-email-alerts-scheduler:
     needs: deploy-email-alerts
     uses: ./.github/workflows/deploy-scheduler.yaml
@@ -48,6 +55,10 @@ jobs:
       job_name: email-alerts
       scheduler_name: run-email-alerts
       schedule: "1 * * * *"  #Every hour
+
+# -------------------------------
+#  FLORIDA SCRAPER
+# ----------------------------
 
   deploy-florida-pollution:
     needs: build-and-push-docker
@@ -65,6 +76,10 @@ jobs:
       scheduler_name: run-florida-pollution-scraper
       schedule: "55 2 * * *"  #Every day at 2:55am
 
+# -------------------------------
+#   PA PERMITS SCRAPER
+# ----------------------------
+
   deploy-pa-permits:
     needs: build-and-push-docker
     uses: ./.github/workflows/deploy-job.yaml
@@ -72,7 +87,6 @@ jobs:
       job_name: "pa-permits"
       job_path: "src.jobs.PAPermits"
       memory: "1Gi"
-
   
   deploy-pa-permits-scheduler:
     needs: deploy-pa-permits
@@ -80,7 +94,11 @@ jobs:
     with:
       job_name: pa-permits
       scheduler_name: run-pa-permits
-      schedule: "10 */6 * * *"  #Minute 10, every 6 hours  
+      schedule: "10 */6 * * *"  #Minute 10, every 6 hours 
+      
+# -------------------------------
+#   PA SPUDS SCRAPER
+# ----------------------------
 
   deploy-pa-spuds:
     needs: build-and-push-docker
@@ -98,6 +116,10 @@ jobs:
       scheduler_name: run-pa-spuds
       schedule: "20 */6 * * *"  #Minute 20, every 6 hours          
 
+# -------------------------------
+#   PS VIOLATION SCRAPER
+# ----------------------------
+
   deploy-pa-violations:
     needs: build-and-push-docker
     uses: ./.github/workflows/deploy-job.yaml
@@ -114,6 +136,10 @@ jobs:
       scheduler_name: run-pa-violations
       schedule: "15 */6 * * *"  #Minute 15, every 6 hours   
 
+# -------------------------------
+#   NRC SCRAPER
+# ----------------------------
+
   deploy-nrc:
     needs: build-and-push-docker
     uses: ./.github/workflows/deploy-job.yaml
@@ -127,4 +153,22 @@ jobs:
     with:
       job_name: nrc
       scheduler_name: run-nrc
+      schedule: "0 20 * * 4"  # Run at 8:00 PM every Thursday.
+
+# -------------------------------
+#   TIFF TO TILES
+# -------------------------------
+  deploy-tiff-2-tiles:
+    needs: build-and-push-docker
+    uses: ./.github/workflows/deploy-job.yaml
+    with:
+      job_name: "tiff-2-tiles"
+      job_path: "src.jobs.nrc_scraper"
+
+  deploy-tiff-2-tiler:
+    needs: deploy-tiff-2-tiles
+    uses: ./.github/workflows/deploy-scheduler.yaml
+    with:
+      job_name: tiff-2-tiles
+      scheduler_name: run-tiff-2-tiles
       schedule: "0 20 * * 4"  # Run at 8:00 PM every Thursday.

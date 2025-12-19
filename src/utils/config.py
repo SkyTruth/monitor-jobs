@@ -1,8 +1,6 @@
 from src.utils import common
 import os
 
-GCP_PROJECT_ID = "skytruth-alerts2"
-
 # Planet API key
 PL_API_KEY = common.access_secret_version("skytruth-alerts2", "PL_API_KEY", "latest")
 ENVIRONMENT = os.getenv("ENVIRONMENT")  # Environment variable set in docker

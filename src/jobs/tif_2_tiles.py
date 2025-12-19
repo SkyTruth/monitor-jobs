@@ -1,21 +1,19 @@
 import io
 import os
 import subprocess
-import sys
 from tempfile import mkdtemp
 
 from src.utils import db
 import rasterio
-import rasterio.warp
+from rasterio.warp import transform
 
 from google.auth import default
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
-from google.cloud import storage
 
-from rasterio.crs import CRS
+import logging
 
-from src.utils.config import GCP_PROJECT_ID
+logger = logging.getLogger(__name__)
 
 
 class Tif2Tiles:
@@ -35,16 +33,16 @@ class Tif2Tiles:
         download_path = os.path.join(self.tiff_file_dir, file_name)
         request = self.service.files().get_media(fileId=file_id, supportsAllDrives=True)
 
-        with io.FileIO(download_path, "wb") as fh:
-            downloader = MediaIoBaseDownload(fh, request)
+        with io.FileIO(download_path, "wb") as handler:
+            downloader = MediaIoBaseDownload(handler, request)
             done = False
             while not done:
                 status, done = downloader.next_chunk()
                 print(f"Download {int(status.progress() * 100)}%")
 
-        fh.close()
+        handler.close()
 
-    def main(self, args):
+    def main(self):
         try:
             results = (
                 self.service.files()
@@ -57,27 +55,20 @@ class Tif2Tiles:
                 )
                 .execute()
             )
+
             items = results.get("files", [])
 
-            print("ITEMS", items[0], flush=True)
-
-            if not items:
-                print("No files found.")
-            else:
+            if items:
                 folders = []
                 for item in items:
-                    print(item["parents"], flush=True)
                     if item["parents"] == [self.drive_id]:
                         folders.insert(0, [item["id"], item["name"]])
-                print("folders:", folders, flush=True)
 
                 count = 0
-                print("Files:")
                 for item in items:
                     for folder in folders:
                         if folder[0] == item["parents"][0]:
                             file_name = item["name"]
-                            print(file_name)
                             if (
                                 not file_name.upper().endswith(".TIF")
                                 and not file_name.upper().endswith(".TIFF") == None
@@ -177,39 +168,27 @@ class Tif2Tiles:
         db.upd_file_upload(storage_file_path, status, message)
 
     def get_centroid(self, full_path_to_downloaded_file):
-        dat = rasterio.open(full_path_to_downloaded_file)
-        # check the crs of the data
-        src_crs = str(dat.crs)[5:]
-        print("src_crs:", src_crs, flush=True)
+        with rasterio.open(full_path_to_downloaded_file) as image:
+            # Get bounds in source CRS
+            bounds = image.bounds
+            crs = image.crs
 
-        # check the bounding-box of the data
-        print(dat.bounds, flush=True)
-        src_bounds = str(dat.bounds)
-        # BoundingBox(left=240848.5, bottom=1672362.0, right=243066.0, top=1673347.0)
-        left = float(src_bounds[src_bounds.index("left=") + 5 : src_bounds.index(", bottom=")])
-        bottom = float(src_bounds[src_bounds.index("bottom=") + 7 : src_bounds.index(", right=")])
-        right = float(src_bounds[src_bounds.index("right=") + 6 : src_bounds.index(", top=")])
-        top = float(src_bounds[src_bounds.index("top=") + 4 : src_bounds.index(")")])
-        longitude = (left + right) / 2
-        latitude = (bottom + top) / 2
+            if crs is None:
+                raise ValueError("Raster has no CRS defined")
 
-        # print(83, dat.crs, left, bottom, right, top, latitude, longitude, flush=True)
-        if dat.crs == "EPSG:4326":
-            return [latitude, longitude]
-        else:
-            print("attempting to get centroid after converting from", dat.crs, flush=True)
-            # In GeoJSON format
-            # xmin, ymin, xmax, ymax = -180.0225, -90.0225, 179.9775, 90.0225
-            feature = {"type": "Point", "coordinates": [longitude, latitude]}
+            # Compute centroid in source CRS
+            centroid_x = (bounds.left + bounds.right) / 2
+            centroid_y = (bounds.top + bounds.bottom) / 2
 
-            # Project the feature to the desired CRS
-            feature_proj = rasterio.warp.transform_geom(
-                CRS.from_epsg(int(src_crs)), CRS.from_epsg(4326), feature
+            # Reproject centroid to EPSG:4326
+            lon, lat = transform(
+                crs,
+                "EPSG:4326",
+                [centroid_x],
+                [centroid_y],
             )
-            longitude = feature_proj["coordinates"][0]
-            latitude = feature_proj["coordinates"][1]
-            # print(99, feature_proj, longitude, latitude, flush=True)
-            return [latitude, longitude]
+
+            return lat[0], lon[0]
 
     def scale_to_8bits(self, file_name, storage_file_path):
         try:
@@ -234,7 +213,10 @@ class Tif2Tiles:
             print("writing tiles to", output_tileset_folder_path, flush=True)
 
             cmd = (
-                "gdal2tiles.py --zoom 10 --xyz  " + tif_file_name + " " + output_tileset_folder_path
+                "gdal2tiles.py --zoom 10-11 --xyz  "
+                + tif_file_name
+                + " "
+                + output_tileset_folder_path
             )
             os.system(cmd)
         except Exception as e:
@@ -243,39 +225,21 @@ class Tif2Tiles:
 
     def upload_tiles_to_storage(self, tile_folder_name, storage_file_path, folder_name):
         try:
-            storage_client = storage.Client(project=GCP_PROJECT_ID)
-            bucket = storage_client.bucket(self.tiles_storage_bucket)
-
             gcs_parent = os.path.join(self.bucket_tile_parent, folder_name)
             gcs_path = os.path.join(gcs_parent, tile_folder_name)
             tile_path = os.path.join(self.tile_file_dir, tile_folder_name)
 
-            for root, _, files in os.walk(tile_path):
-                for filename in files:
-                    if not filename.lower().endswith(".png"):
-                        continue
+            cmd = [
+                "gcloud",
+                "storage",
+                "rsync",
+                "--recursive",
+                "--checksums-only",
+                tile_path,
+                f"gs://{self.tiles_storage_bucket}/{gcs_path}",
+            ]
 
-                    local_path = os.path.join(root, filename)
-                    relative_path = os.path.relpath(local_path, tile_path).replace(os.sep, "/")
-
-                    object_name = f"{gcs_path}/{relative_path}"
-
-                    blob = bucket.blob(object_name)
-
-                    print(
-                        f"Uploading {local_path} → gs://{self.tiles_storage_bucket}/{object_name}"
-                    )
-                    blob.upload_from_filename(local_path, content_type="image/png")
-
-            # bucket.blob(gcs_path).upload_from_filename(tile_path, timeout=60000)
-            print("Uplaoded")
-
-        except subprocess.TimeoutExpired:
-            self.error(
-                storage_file_path,
-                "upload_tiles_to_storage",
-                "TimeoutExpired",
-            )
+            subprocess.run(cmd, check=True)
 
         except Exception as e:
             print("Upoload failed!", e)
@@ -288,4 +252,4 @@ class Tif2Tiles:
 
 if __name__ == "__main__":
     it = Tif2Tiles()
-    it.main(sys.argv[1:])
+    it.main()

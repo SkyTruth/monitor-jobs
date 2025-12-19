@@ -104,6 +104,8 @@ docker run --rm \
   --mount type=bind,source="$(pwd)/src",target=/app/src \
   -e GOOGLE_APPLICATION_CREDENTIALS="/tmp/keys/adc.json" \
   -v "${ADC_PATH}:/tmp/keys/adc.json:ro" \
+  -v "$HOME/.config/gcloud:/root/.config/gcloud" \
+  -e CLOUDSDK_CONFIG=/root/.config/gcloud \
   monitor-jobs:local \
   -m {path to code}
 ```
