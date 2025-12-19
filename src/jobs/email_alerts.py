@@ -3,25 +3,23 @@ import re
 import sys
 import unicodedata
 from email.mime.text import MIMEText
-from smtplib import SMTP  # sending email
+from smtplib import SMTP
 from urllib.parse import parse_qs, urlparse
 
 from src.utils import config
 from src.utils import db
 from src.utils.config import ALERTS2_API_URL
-from jinja2 import Environment  # Jinja2 templating
+from jinja2 import Environment
 
-# open the file
 filein = open("src/templates/index.html")
-# read it
 TEMPLATE = filein.read()
 
 last_arg = ""
-test_email = None
-for arg in sys.argv:
-    if last_arg == "-test":
-        test_email = arg
-    last_arg = arg
+test_email = "ethan@skytruth.org"
+# for arg in sys.argv:
+#     if last_arg == "-test":
+#         test_email = arg
+#     last_arg = arg
 print("test email is ", test_email)
 
 
@@ -36,7 +34,6 @@ def compose_item_message(self, item, msg_templates):
             if tags != "":
                 tags = tags + ", "
             tags = tags + t["term"]
-            # tags.append(t['term'])
     params["tags"] = ", ".join(tags)
 
     print("params:", params)
@@ -46,18 +43,12 @@ def compose_item_message(self, item, msg_templates):
 
 
 def format_tags(item):
-    # print('feedentry:', item)
     tags = ""
-    # if 'tags' in item:
     try:
         for tag in tags:
             if tags != "":
                 tags = tags + ", "
-            # print('t:', tag)
         tags = tags + tag
-        # tags.append(t['term'])
-        # params['tags'] = ', '.join(tags)
-        # print ('format_tags:', item, tags)
         return tags
     except error:
         print("format_tags error:", error)
@@ -73,7 +64,6 @@ def parse_rss_url(url):
 
     bounds = None
 
-    # convert "l" to "bounds"
     l = q.get("l")
     if l:
         coords = re.split("[:,]", l)
@@ -82,7 +72,6 @@ def parse_rss_url(url):
                 [min(coords[0], coords[2]), min(coords[1], coords[3])],
                 [max(coords[0], coords[2]), max(coords[1], coords[3])],
             ]
-    # convert "BBOX" to "bounds"
     bbox = q.get("BBOX")
     if bbox:
         coords = re.split("[:,]", bbox)
@@ -101,7 +90,7 @@ def parse_rss_url(url):
 def strip_accents(text):
     try:
         text = unicode(text, "utf-8")
-    except NameError:  # unicode is a default on python 3
+    except NameError:
         pass
     text = unicodedata.normalize("NFD", text).encode("ascii", "ignore").decode("utf-8")
     return str(text)
@@ -129,7 +118,7 @@ if __name__ == "__main__":
         aoiid = str(sub[0])
         email = str(sub[2])
 
-        alerts2_latest_published = "2018-10-01"  # last_published
+        alerts2_latest_published = "2018-10-01"
         if test_email == None:
             if sub[3] != None:
                 alerts2_latest_published = str(sub[3])[:23]
