@@ -163,7 +163,7 @@ jobs:
     uses: ./.github/workflows/deploy-job.yaml
     with:
       job_name: "tiff-2-tiles"
-      job_path: "src.jobs.nrc_scraper"
+      job_path: "src.jobs.tiff_2_tiles"
 
   deploy-tiff-2-tiler:
     needs: deploy-tiff-2-tiles
