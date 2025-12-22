@@ -15,7 +15,7 @@ filein = open("src/templates/index.html")
 TEMPLATE = filein.read()
 
 last_arg = ""
-test_email = "ethan@skytruth.org"
+test_email = None  # "ethan@skytruth.org"
 # for arg in sys.argv:
 #     if last_arg == "-test":
 #         test_email = arg
@@ -117,6 +117,8 @@ if __name__ == "__main__":
         aoidescr = strip_accents(sub[1])
         aoiid = str(sub[0])
         email = str(sub[2])
+        if email != "ethan@skytruth.org":
+            continue
 
         alerts2_latest_published = "2018-10-01"
         if test_email == None:
