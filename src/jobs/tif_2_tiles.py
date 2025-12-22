@@ -28,6 +28,7 @@ class Tif2Tiles:
         self.bucket_tile_parent = "tif_2_tiles"
 
     def download_file(self, file_id, file_name):
+        logger.info(f"Downloading {file_name}")
         # create drive api client
         download_path = os.path.join(self.tiff_file_dir, file_name)
         request = self.service.files().get_media(fileId=file_id, supportsAllDrives=True)
@@ -37,7 +38,7 @@ class Tif2Tiles:
             done = False
             while not done:
                 status, done = downloader.next_chunk()
-                print(f"Download {int(status.progress() * 100)}%")
+                logger.info(f"Download {int(status.progress() * 100)}%")
 
         handler.close()
 
@@ -161,14 +162,16 @@ class Tif2Tiles:
         db.upd_file_upload(storage_file_path, status, message)
 
     def get_centroid(self, full_path_to_downloaded_file):
+        file_name_idx = full_path_to_downloaded_file.rfind("/")
+        file = full_path_to_downloaded_file[file_name_idx + 1 :]
+
+        logger.info(f"Attempting to find the centroid for {file}")
+
         with rasterio.open(full_path_to_downloaded_file) as image:
             bounds = image.bounds
             crs = image.crs
 
             if crs is None:
-                file_name_idx = full_path_to_downloaded_file.rfind("/")
-                file = full_path_to_downloaded_file[file_name_idx + 1 :]
-
                 logger.exception(f"{file} has no defined CRS")
                 raise ValueError("Raster has no CRS defined")
 
@@ -192,6 +195,7 @@ class Tif2Tiles:
         generation process
         """
         try:
+            logger.info(f"Creating VRT for {file_name}")
             input_tif_file = os.path.join(self.tiff_file_dir, file_name)
             output_tif_file = os.path.join(self.warp_file_dir, file_name)
 
@@ -206,11 +210,12 @@ class Tif2Tiles:
 
     def convert_to_tiles(self, file_name, tile_folder_name, storage_file_path):
         try:
+            logger.info(f"Creating tiles for tiff {file_name}")
             tif_file_name = os.path.join(self.warp_file_dir, file_name)
             output_tileset_folder_path = os.path.join(self.tile_file_dir, tile_folder_name)
 
             cmd = (
-                "gdal2tiles.py --zoom 10-11 --xyz  "
+                "gdal2tiles.py --zoom 10-18 --xyz  "
                 + tif_file_name
                 + " "
                 + output_tileset_folder_path
@@ -226,6 +231,8 @@ class Tif2Tiles:
             gcs_parent = os.path.join(self.bucket_tile_parent, folder_name)
             gcs_path = os.path.join(gcs_parent, tile_folder_name)
             tile_path = os.path.join(self.tile_file_dir, tile_folder_name)
+
+            logger.info(f"Uploading raster tiles to gs://{self.tiles_storage_bucket}/{gcs_path}")
 
             cmd = [
                 "gcloud",
