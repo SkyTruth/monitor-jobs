@@ -128,3 +128,18 @@ jobs:
       job_name: nrc
       scheduler_name: run-nrc
       schedule: "0 20 * * 4"  # Run at 8:00 PM every Thursday.
+
+  deploy-load-planet-orders:
+    needs: build-and-push-docker
+    uses: ./.github/workflows/deploy-job.yaml
+    with:
+      job_name: "load-planet-orders"
+      job_path: "src.jobs.load_planet_orders"
+
+  deploy-load-planet-orders-scheduler:
+    needs: deploy-load-planet-orders
+    uses: ./.github/workflows/deploy-scheduler.yaml
+    with:
+      job_name: load-planet-orders
+      scheduler_name: run-load-planet-orders
+      schedule: "05 */6 * * *"  # Run at 5 minutes past every 6th hour.
