@@ -165,6 +165,7 @@ jobs:
       job_name: "tiff-2-tiles"
       job_path: "src.jobs.tiff_2_tiles"
       timeout: "3600s"
+      memory: "1Gi"
 
   deploy-tiff-2-tiler:
     needs: deploy-tiff-2-tiles
