@@ -215,7 +215,7 @@ class Tif2Tiles:
             output_tileset_folder_path = os.path.join(self.tile_file_dir, tile_folder_name)
 
             cmd = (
-                "gdal2tiles.py --zoom 10-18 --xyz  "
+                "gdal2tiles.py --zoom 10-16 --xyz  "
                 + tif_file_name
                 + " "
                 + output_tileset_folder_path
