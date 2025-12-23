@@ -60,11 +60,10 @@ Where `{job-name}` is a descriptive name of the job written in kabob case, and `
 
 Many jobs integrate with GCP APIs in various ways, in cloud run these interactions are permitted via iam roles on the invoking service account. The safest way to be granted these authentications locally is to create your personal `Application Default Credentials (ADC)` and map them into the docker image. NOTE:  This requires your personal account to have the necessary permissions.
 
-1. Create ADC with appropriate scopes for google drive
+1. Create ADC impersonating the job invoker service account
 
 ```bash
-  gcloud auth application-default login \
-  --scopes=https://www.googleapis.com/auth/drive.readonly,https://www.googleapis.com/auth/cloud-platform
+  gcloud auth application-default login && gcloud config set auth/impersonate_service_account cloud-run-job@skytruth-alerts2.iam.gserviceaccount.com
 ```
 
 2. Mount your local credentials, by adding the following to your `docker run` command - further explained in [Running Locally](#running-locally)

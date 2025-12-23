@@ -173,4 +173,4 @@ jobs:
     with:
       job_name: tiff-2-tiles
       scheduler_name: run-tiff-2-tiles
-      schedule: "0 20 * * 4"  # Run at 8:00 PM every Thursday.
+      schedule: "*/12 * * *"  # Every 12 hours

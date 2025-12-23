@@ -12,6 +12,7 @@ from rasterio.warp import transform
 
 from src.utils import db
 
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -29,7 +30,7 @@ class Tif2Tiles:
 
     def download_file(self, file_id, file_name):
         logger.info(f"Downloading {file_name}")
-        # create drive api client
+
         download_path = os.path.join(self.tiff_file_dir, file_name)
         request = self.service.files().get_media(fileId=file_id, supportsAllDrives=True)
 
@@ -204,7 +205,7 @@ class Tif2Tiles:
             )
             os.system(gdalwarp_cmd)
         except Exception as e:
-            logger.exception(f"Failed generate 8-bit VRT fro geotiff {str(e)}")
+            logger.exception(f"Failed generate 8-bit VRT for geotiff {str(e)}")
             self.error(storage_file_path, "scale_to_8bits", str(e))
             raise
 
