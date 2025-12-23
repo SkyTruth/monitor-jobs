@@ -58,7 +58,7 @@ Where `{job-name}` is a descriptive name of the job written in kabob case, and `
 
 ### Authentication
 
-Many jobs integrate with GCP APIs in various ways, in cloud run these interactions are permitted via iam roles on the invoking service account. The safest way to be granted these authentications locally is to create your personal `Application Default Credentials (ADC)` and map them into the docker image. NOTE:  This requires your personal account to have the necessary permissions.
+Many jobs integrate with GCP APIs in various ways, in cloud run these interactions are permitted via iam roles on the invoking service account. The safest way to be granted these authentications locally is to create your personal `Application Default Credentials (ADC)`, impersonate the running service account and then map them into the docker image.
 
 1. Create ADC impersonating the job invoker service account
 
