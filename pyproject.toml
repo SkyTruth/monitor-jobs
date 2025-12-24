@@ -1,6 +1,6 @@
 [project]
 name = "monitor-jobs"
-version = "0.11.0"
+version = "0.11.1"
 description = "Cloud Run cron jobs and scrapers to support monitor"
 authors = [
     {name = "SkyTruth"}
