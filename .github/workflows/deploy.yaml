@@ -173,4 +173,4 @@ jobs:
     with:
       job_name: tiff-2-tiles
       scheduler_name: run-tiff-2-tiles
-      schedule: "*/12 * * *"  # Every 12 hours
+      schedule: "0 */12 * * *"  # Every 12 hours
