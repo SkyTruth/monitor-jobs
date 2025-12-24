@@ -314,7 +314,6 @@ class PAPermits:
                                         "tags": tags,
                                         "status": "published",
                                     }
-                                    logging.info(f"298 post_fields: {post_fields}")
                                     url = config.API_POST_FEEDENTRY
                                     response = requests.post(url, data=post_fields)
                                     logging.info(f"Response: {response.content}")
