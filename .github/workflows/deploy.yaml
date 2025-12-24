@@ -46,7 +46,7 @@ jobs:
     uses: ./.github/workflows/deploy-job.yaml
     with:
       job_name: "email-alerts"
-      job_path: "src.jobs.test"
+      job_path: "src.jobs.email_alerts"
 
   deploy-email-alerts-scheduler:
     needs: deploy-email-alerts
@@ -54,7 +54,7 @@ jobs:
     with:
       job_name: email-alerts
       scheduler_name: run-email-alerts
-      schedule: "1 * * * *"  #Every hour
+      schedule: "30 */4 * * *"  #Run at 30 minutes past every 4th hour.
 
 # -------------------------------
 #  FLORIDA SCRAPER
