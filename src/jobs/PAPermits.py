@@ -18,6 +18,9 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from src.utils import config
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 
 class PAPermits:
@@ -49,9 +52,9 @@ class PAPermits:
                 options.add_argument("--no-sandbox")
                 options.add_argument("--disable-gpu")
                 driver = webdriver.Firefox(options=options)
-                print("getting driver")
+                logging.info("getting driver")
                 driver.get(self.scraped_webpage_url)
-                print("dates:", self.start_date_string, self.today_string)
+                logging.info(f"dates: {self.start_date_string} to {self.today_string}")
                 from_date = driver.find_element(By.NAME, "ReportViewerControl$ctl04$ctl03$txtValue")
                 driver.execute_script(
                     "arguments[0].setAttribute('value', '" + self.start_date_string + "')",
@@ -79,13 +82,8 @@ class PAPermits:
                 current_page = 1
 
                 while current_page <= total_pages:
-                    print("")
-                    print(
-                        "processing page ",
-                        current_page,
-                        " of ",
-                        total_pages,
-                        datetime.now(tz=None),
+                    logging.info(
+                        f"processing page {current_page} of {total_pages} {datetime.now(tz=None)}"
                     )
                     doc = BeautifulSoup(driver.page_source, "html.parser")
                     self.process_page(doc)
@@ -105,29 +103,23 @@ class PAPermits:
                         doc = BeautifulSoup(driver.page_source, "html.parser")
 
             except (NoAlertPresentException, TimeoutException) as py_ex:
-                print("TimeoutException")
-                print(py_ex)
-                print(py_ex.args)
+                logging.error("TimeoutException")
+                logging.error(py_ex)
+                logging.error(py_ex.args)
                 raise
             finally:
                 driver.quit()
 
         except Exception as e:
-            print("PAPermits error:", str(e), flush=True)
+            logging.error(f"PAPermits error: {str(e)}")
             raise
         # Finish up
         for num, source_id in enumerate(self.source_ids, start=0):
             self.after_counts[num] = self.db.get_feedentry_count(source_id)["count"]
         email_subj = "PA DEP Permit finished ("
         for num, source_id in enumerate(self.source_ids, start=0):
-            print(
-                source_id,
-                " before:",
-                int(self.before_counts[num]),
-                " after:",
-                int(self.after_counts[num]),
-                " total added:",
-                int(self.after_counts[num] - self.before_counts[num]),
+            logging.info(
+                f"{source_id} before: {int(self.before_counts[num])} after: {int(self.after_counts[num])} total added: {int(self.after_counts[num] - self.before_counts[num])}"
             )
             email_subj += (
                 repr(source_id)
@@ -182,10 +174,10 @@ class PAPermits:
                                 cellx += 1
                             if process_tbl:
                                 if rowx == 0:
-                                    print("180 cols:", cols, flush=True)
+                                    logging.info(f"180 cols: {cols}")
                                 if rowx > 0:
-                                    print("", flush=True)
-                                    print("191 trans:", trans, flush=True)
+                                    logging.info("")
+                                    logging.info(f"191 trans: {trans}")
 
                                     COUNTY = trans["COUNTY"]
                                     MUNICIPALITY = trans["MUNICIPALITY"]
@@ -213,17 +205,12 @@ class PAPermits:
                                     else:
                                         horiz = "N"
                                         if CONFIGURATION not in ("Vertical Well",):
-                                            print("Unknown PA Configuration: " + CONFIGURATION)
+                                            pass
 
                                     latitude = LATITUDE_DECIMAL
                                     longitude = LONGITUDE_DECIMAL
-                                    print(
-                                        "WELL_API:",
-                                        WELL_API,
-                                        " latitude:",
-                                        latitude,
-                                        " longitude:",
-                                        longitude,
+                                    logging.info(
+                                        f"WELL_API: {WELL_API} latitude: {latitude} longitude: {longitude}"
                                     )
                                     self.db.insertPaPermit(
                                         str(WELL_API), str(latitude), str(longitude)
@@ -327,16 +314,15 @@ class PAPermits:
                                         "tags": tags,
                                         "status": "published",
                                     }
-                                    print("", flush=True)
-                                    print(298, post_fields, flush=True)
+                                    logging.info(f"298 post_fields: {post_fields}")
                                     url = config.API_POST_FEEDENTRY
                                     response = requests.post(url, data=post_fields)
-                                    print(response.content)
+                                    logging.info(f"Response: {response.content}")
 
                             rowx += 1
 
         except Exception as e:
-            print("process_page error:", str(e), flush=True)
+            logging.error(f"process_page error: {str(e)}")
 
 
 # /* ======================================================================= */#
