@@ -62,9 +62,6 @@ def getNewAlertsForEmails(l, d, n, alerts2_last_published, aoiid, regionid, emai
                     + bb[3]
                 )
         sql = select + where + " ORDER BY fe.incident_datetime DESC" + " LIMIT " + str(n)
-        # print('')
-        # print('email:', email)
-        # print('sql:', sql)
         conn = psycopg2.connect(config.DB_CONNECTION_STRING)
         conn.set_client_encoding("UTF8")
         cur = conn.cursor()
@@ -72,7 +69,7 @@ def getNewAlertsForEmails(l, d, n, alerts2_last_published, aoiid, regionid, emai
         feedentry = cur.fetchall()
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+        raise
     finally:
         if conn is not None:
             conn.close()
@@ -137,7 +134,7 @@ def read_subscriptions():
         subs = cur.fetchall()
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+        raise
     finally:
         if conn is not None:
             conn.close()
@@ -162,7 +159,7 @@ def read_test_subscriptions(test_email):
         subs = cur.fetchall()
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+        raise
     finally:
         if conn is not None:
             conn.close()
@@ -187,28 +184,20 @@ def upd_rss_last_email_sent(aoiid, last_published):
             + aoiid
             + "'"
         )
-        # print('update:', sql)
         cur.execute(sql)
-        # print('1')
         conn.commit()
-        # print('2')
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
-        print(str(error))
-        print("error aoiid:", aoiid, " last_published:", str(last_published))
-        print("")
+        raise
     finally:
         if conn is not None:
             conn.close()
 
 
 def upd_issuesubscription_last_email_sent(is_id, last_published):
-    print("is_id:", is_id, " last_published:", str(last_published))
     conn = None
     is_id = str(is_id)
     try:
-        # self.db.updateEmailSubscription (sub['id'],
-        #                     {'last_email_sent': format_datetime(datetime.now()), 'last_item_updated': msg_parts['last_item_updated']})
         conn = psycopg2.connect(config.DB_CONNECTION_STRING)
         cur = conn.cursor()
         sql = (
@@ -221,12 +210,11 @@ def upd_issuesubscription_last_email_sent(is_id, last_published):
             + is_id
             + "'"
         )
-        print("update:", sql)
         cur.execute(sql)
         conn.commit()
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
-        print(str(error))
+        raise
     finally:
         if conn is not None:
             conn.close()
@@ -244,7 +232,7 @@ def get_next_uploaded_tiff():
         next_file = cur.fetchone()
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+        raise
     finally:
         if conn is not None:
             conn.close()
@@ -254,17 +242,15 @@ def get_next_uploaded_tiff():
 def get_file_upload(storage_file_path):
     conn = None
     file_upload = None
-    # print(storage_file_path)
     try:
         conn = psycopg2.connect(config.DB_CONNECTION_STRING)
         cur = conn.cursor()
         sql = """SELECT * FROM file_uploads WHERE storage_file_path='%s' """ % (storage_file_path)
-        # print('sql:', sql)
         cur.execute(sql)
         file_upload = cur.fetchone()
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+        raise
     finally:
         if conn is not None:
             conn.close()
@@ -282,7 +268,7 @@ def get_next_uploaded_tiff_missing_coords():
         next_file = cur.fetchone()
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+        raise
     finally:
         if conn is not None:
             conn.close()
@@ -290,7 +276,6 @@ def get_next_uploaded_tiff_missing_coords():
 
 
 def upd_file_upload(storage_file_path, status, message, latitude=None, longitude=None):
-    # print('upd_file_upload:', storage_file_path, status, message, latitude, longitude, flush=True)
     conn = None
     try:
         conn = psycopg2.connect(config.DB_CONNECTION_STRING)
@@ -304,7 +289,7 @@ def upd_file_upload(storage_file_path, status, message, latitude=None, longitude
         conn.commit()
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+        raise
     finally:
         if conn is not None:
             conn.close()
@@ -321,7 +306,6 @@ def insert_file_upload(
     latitude=None,
     longitude=None,
 ):
-    # print('insert_file_upload:', storage_file_path, status, message, latitude, longitude, flush=True)
     conn = None
     try:
         dt = datetime.now()
@@ -356,7 +340,7 @@ def insert_file_upload(
         conn.commit()
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+        raise
     finally:
         if conn is not None:
             conn.close()
@@ -381,7 +365,6 @@ class NrcDatabase:
         return NrcDatabase.uuid_str(uuid.uuid5(namespace, name))
 
     def __init__(self):
-        print("NrcDatabase __init__")
         self.db_connection_string = config.DB_CONNECTION_STRING
         self.host = config.DB_HOST
         self.user = config.DB_USER
@@ -390,7 +373,6 @@ class NrcDatabase:
         self.db = None
         psycopg2.extras.register_uuid()
         self.table_keyfields = {}
-        # print('NrcDatabase __init__ 2')
 
     def get_last_posted_reportnum(self):
         db_conn = psycopg2.connect(self.db_connection_string)
@@ -422,14 +404,12 @@ class NrcDatabase:
             + "%' LIMIT 1"
         )
         c.execute(sql)
-        # print('c.fetchone:', one) #c.fetchone())
         return c.fetchone()
 
     def get_feedentry_count(self, source_id):
         c = self.db.cursor(cursor_factory=DictCursor)
         sql = "SELECT COUNT(*) FROM feedentry WHERE source_id=%s"
         c.execute(sql, (source_id,))
-        # print('c.fetchone:', one) #c.fetchone())
         return c.fetchone()
 
     def reportExists(self, reportnum):
@@ -583,7 +563,6 @@ class NrcDatabase:
         return c.fetchone()
 
     def loadParsedReport(self, reportnum):
-        # print 'loadParsedReport:', reportnum
         c = self.db.cursor(cursor_factory=DictCursor)
         c.execute('SELECT * from "NrcParsedReport" WHERE reportnum=%s', (reportnum,))
         return c.fetchone()
@@ -826,11 +805,9 @@ class NrcDatabase:
         return result
 
     def getGeocodeCache(self, key):
-        # print ('getGeocodeCache:', key)
         sql = """SELECT * FROM "GeocodeCache" WHERE _key=%s AND (NOW() - updated) < interval '180 days'"""
         c = self.db.cursor(cursor_factory=DictCursor)
         c.execute(sql, (key,))
-        # print('c.fetchone:', one) #c.fetchone())
         return c.fetchone()
 
     def putGeocodeCache(self, key, lat, lng):
@@ -1044,16 +1021,13 @@ class NrcDatabase:
         return n
 
     def seeIfFeedentryExists(self, id):
-        # print 'getFeedentryById', id
         c = self.db.cursor(cursor_factory=DictCursor)
         sql = "SELECT * FROM feedentry WHERE id='%s'" % id
-        # print sql
         c.execute(sql)  # , (id))
         n = c.rowcount
         return n
 
     def update_NY_non_ascii(self):
-        print("update_NY_non_ascii")
         try:
             sql = """
                 UPDATE feedentry SET title = regexp_replace(title, '[\u0080-\u00ff]', '', 'g') WHERE source_id=1060 and title ~ '[^[:ascii:]]';
@@ -1062,10 +1036,8 @@ class NrcDatabase:
             """
             c = self.db.cursor(cursor_factory=DictCursor)
             c.execute(sql)
-            print("finished OK")
             return "ok"
         except Exception as e:
-            print("update_NY_non_ascii error:", e)
             return "error"
 
     def getLastSourceItemId(self, source_id):
