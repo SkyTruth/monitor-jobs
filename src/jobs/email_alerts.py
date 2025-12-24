@@ -10,6 +10,9 @@ from src.utils import config
 from src.utils import db
 from src.utils.config import ALERTS2_API_URL
 from jinja2 import Environment
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 filein = open("src/templates/index.html")
 TEMPLATE = filein.read()
@@ -20,7 +23,7 @@ for arg in sys.argv:
     if last_arg == "-test":
         test_email = arg
     last_arg = arg
-print("test email is ", test_email)
+logging.info(f"test email is {test_email}")
 
 
 def compose_item_message(self, item, msg_templates):
@@ -35,8 +38,6 @@ def compose_item_message(self, item, msg_templates):
                 tags = tags + ", "
             tags = tags + t["term"]
     params["tags"] = ", ".join(tags)
-
-    print("params:", params)
     html_msg = msg_templates["html"]["item"].substitute(params)
     text_msg = msg_templates["text"]["item"].substitute(params)
     return {"text": text_msg, "html": html_msg}
@@ -51,7 +52,6 @@ def format_tags(item):
         tags = tags + tag
         return tags
     except error:
-        print("format_tags error:", error)
         return item
 
 
@@ -102,9 +102,9 @@ if __name__ == "__main__":
             subs = db.read_test_subscriptions(test_email)
         else:
             subs = db.read_subscriptions()
-        print("number of subscriptions with new alerts:", len(subs))
+        logging.info(f"number of subscriptions with new alerts: {len(subs)}")
     except Exception as e:
-        print("Error getting subscriptions:", e)
+        logging.error(f"Error getting subscriptions: {e}")
 
     emails_sent = 0
     dates_updated = 0
@@ -185,9 +185,8 @@ if __name__ == "__main__":
                         server.login(user, pwd)
                         server.sendmail(msg["Subject"], [msg["To"]], msg.as_string())
                         server.close()
-                        print(
-                            "successfully sent the mail to " + email + " updating " + aoiid,
-                            aoidescr,
+                        logging.info(
+                            f"successfully sent the mail to {email} updating {aoiid} {aoidescr}"
                         )
                         emails_sent = emails_sent + 1
                         total_alerts_included = total_alerts_included + fe_count
@@ -211,12 +210,7 @@ if __name__ == "__main__":
                         str(exc_tb.tb_lineno),
                         " see logfile for more info",
                     )
-                    print("error:", error)
-                    print("title:", title)
-                    print("aoidescr:", aoidescr)
-                    print("subscription_id:", aoiid)
-                    print("mapurl:", params["static_map_url"])
-                    print("fe_count:", fe_count)
+                    logging.error(error)
 
             except Exception as exception2:
                 exc_info = sys.exc_info()
@@ -230,12 +224,9 @@ if __name__ == "__main__":
                     str(exc_tb.tb_lineno),
                     " see logfile for more info",
                 )
-                print("error:", error)
-                print("title:", title)
-                print("aoidescr:", aoidescr)
-                print("subscription_id:", aoiid)
+                logging.error(error)
                 try:
-                    print("mapurl:", params["static_map_url"])
+                    logging.info("mapurl: " + params["static_map_url"])
                 except:
-                    print("no mapurl yet")
-                print("fe_count:", fe_count)
+                    logging.info("no mapurl yet")
+                logging.info("fe_count: " + str(fe_count))
