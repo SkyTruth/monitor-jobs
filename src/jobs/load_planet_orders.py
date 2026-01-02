@@ -20,6 +20,7 @@ def checkExistingOrders():
         logging.error(f"Error accessing stats/orders/v2 API: {response.content}")
 
     myjson = response.json()
+    print(f"Found {len(myjson['orders'])} new order(s)")
     for order in myjson["orders"]:
         for product in order["products"]:
             for item in product["item_ids"]:
@@ -30,7 +31,6 @@ def checkExistingOrders():
                 scene_id = item
                 item_type = product["item_type"]
                 product_bundle = product["product_bundle"]
-
                 row = getScene(scene_id)
                 if row is None:
                     id = putOrder(
@@ -55,9 +55,7 @@ def putOrder(id, name, created_on, last_message, scene_id, item_type, product_bu
         VALUES (%s, %s, %s, %s, %s, %s, %s);
     """
     values = (id, name, created_on, last_message, scene_id, item_type, product_bundle)
-
     conn = psycopg2.connect(config.DB_CONNECTION_STRING)
-
     id = None
     with conn.cursor() as cursor:
         try:
@@ -77,9 +75,7 @@ def getScene(scene_id):
     sql = """
         SELECT * FROM public.planet_orders WHERE scene_id='%s'
     """ % (scene_id)
-
     conn = psycopg2.connect(config.DB_CONNECTION_STRING)
-
     row = None
     with conn.cursor() as cursor:
         cursor.execute(sql)

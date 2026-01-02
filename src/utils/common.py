@@ -8,8 +8,6 @@ def access_secret_version(project_id, secret_id, version_id):
     can be a version number as a string (e.g. "5") or an alias (e.g. "latest").
     """
 
-    # Import the Secret Manager client library.
-    # Create the Secret Manager client.
     client = secretmanager.SecretManagerServiceClient()
 
     # Build the resource name of the secret version.
