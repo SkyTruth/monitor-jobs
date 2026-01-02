@@ -15,8 +15,8 @@ def checkExistingOrders():
         print("Yay, you can accessed the stats/orders/v2 API")
     else:
         print("Something is wrong:", response.content)
-
     myjson = response.json()
+    print(f"Found {len(myjson['orders'])} new order(s)")
     for order in myjson["orders"]:
         for product in order["products"]:
             for item in product["item_ids"]:
@@ -27,7 +27,6 @@ def checkExistingOrders():
                 scene_id = item
                 item_type = product["item_type"]
                 product_bundle = product["product_bundle"]
-                # print(483, scene_id, flush=True)
                 row = getScene(scene_id)
                 if row == None:
                     id = putOrder(
@@ -49,19 +48,9 @@ def putOrder(id, name, created_on, last_message, scene_id, item_type, product_bu
     	VALUES (%s, %s, %s, %s, %s, %s, %s);
         """
     values = (id, name, created_on, last_message, scene_id, item_type, product_bundle)
-    # pw = config.ALERTS2_PASSWORD
-    # unix_socket = '/cloudsql/{}'.format(
-    #     "skytruth-alerts2:us-east1:alerts12pg")
-    ############# IMPORTANT ###################
-    # Next line is for running from production
-    # conn = psycopg2.connect(
-    #     database="alerts2", user="postgres", password=pw, host=unix_socket)
-    # Next line is for running locally
     conn = psycopg2.connect(config.DB_CONNECTION_STRING)
-    ###########################################
     id = None
     with conn.cursor() as cursor:
-        # print(511, sql, flush=True)
         try:
             cursor.execute(sql, values)
             conn.commit()
@@ -76,16 +65,7 @@ def getScene(scene_id):
     sql = """
         SELECT * FROM public.planet_orders WHERE scene_id='%s'
     """ % (scene_id)
-    # pw = config.ALERTS2_PASSWORD
-    # unix_socket = '/cloudsql/{}'.format(
-    #     "skytruth-alerts2:us-east1:alerts12pg")
-    ############# IMPORTANT ###################
-    # Next line is for running from production
-    # conn = psycopg2.connect(
-    #     database="alerts2", user="postgres", password=pw, host=unix_socket)
-    # Next line is for running locally
     conn = psycopg2.connect(config.DB_CONNECTION_STRING)
-    ###########################################
     row = None
     with conn.cursor() as cursor:
         cursor.execute(sql)
