@@ -68,7 +68,12 @@ def convert_lat_lng(l):
             pass
 
     # If there is an 'S' or a 'W' in there, then the value is negative
-    if re.compile("[SW]", re.IGNORECASE).search(l) and result > 0 or re.compile("[NE]", re.IGNORECASE).search(l) and result < 0:
+    if (
+        re.compile("[SW]", re.IGNORECASE).search(l)
+        and result > 0
+        or re.compile("[NE]", re.IGNORECASE).search(l)
+        and result < 0
+    ):
         result = -result
 
     # round off to remove irele precision
@@ -349,20 +354,14 @@ class FeedEntry(Item):
     #    updated = SingleField ()     # Deprecated - use published or incicent_datetime
     published = SingleField()  # this is the date the item was published
     # Leave this null to have the current timestamp applied
-    summary = Field(
-        input_processor=MapCompose(fix_entities), output_processor=Join(" - ")
-    )
-    content = Field(
-        input_processor=MapCompose(fix_entities), output_processor=Join("<br/>")
-    )
+    summary = Field(input_processor=MapCompose(fix_entities), output_processor=Join(" - "))
+    content = Field(input_processor=MapCompose(fix_entities), output_processor=Join("<br/>"))
     lat = SingleField()
     lng = SingleField()
     source_id = SingleField()
     kml_url = SingleField()
     incident_datetime = SingleField()  # date of the incident
-    source_item_id = (
-        SingleField()
-    )  # id of the item in the source data (usually equal to task_id)
+    source_item_id = SingleField()  # id of the item in the source data (usually equal to task_id)
     status = SingleField()  # if left null, default is 'published'
     # when testing a scraper, set status to 'draft'
     # and view alerts at
@@ -550,21 +549,15 @@ class FracFocusScrape(NrcItem):
     api = KeyField(
         xpath="td[2]/text()",
     )
-    job_date = KeyField(
-        xpath="td[3]/text()", input_processor=MapCompose(convert_date_MDY)
-    )
+    job_date = KeyField(xpath="td[3]/text()", input_processor=MapCompose(convert_date_MDY))
     state = ContentField(
         xpath="td[4]/text()",
     )
     county = ContentField(
         xpath="td[5]/text()",
     )
-    operator = SingleField(
-        xpath="td[6]/div/text()", input_processor=MapCompose(str.strip)
-    )
-    well_name = SingleField(
-        xpath="td[7]/div/text()", input_processor=MapCompose(str.strip)
-    )
+    operator = SingleField(xpath="td[6]/div/text()", input_processor=MapCompose(str.strip))
+    well_name = SingleField(xpath="td[7]/div/text()", input_processor=MapCompose(str.strip))
     well_type = ContentField(
         xpath="td[8]/text()",
     )
@@ -697,12 +690,8 @@ class FracFocusParseChemical(NrcItem):
     purpose = ContentField()
     ingredients = ContentField()
     cas_number = ContentField()
-    additive_concentration = SingleField(
-        input_processor=MapCompose(extract_largest_float)
-    )
-    hf_fluid_concentration = SingleField(
-        input_processor=MapCompose(extract_largest_float)
-    )
+    additive_concentration = SingleField(input_processor=MapCompose(extract_largest_float))
+    hf_fluid_concentration = SingleField(input_processor=MapCompose(extract_largest_float))
     ingredient_weight = SingleField(input_processor=MapCompose(strip_non_digits))
     comments = ContentField()
 

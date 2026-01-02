@@ -56,14 +56,66 @@ Where `{job-name}` is a descriptive name of the job written in kabob case, and `
 
 ## Developing Locally
 
+### Authentication
+
+Many jobs integrate with GCP APIs in various ways, in cloud run these interactions are permitted via iam roles on the invoking service account. The safest way to be granted these authentications locally is to create your personal `Application Default Credentials (ADC)`, impersonate the running service account and then map them into the docker image.
+
+1. Create ADC impersonating the job invoker service account
+
+```bash
+  gcloud auth application-default login && gcloud config set auth/impersonate_service_account cloud-run-job@skytruth-alerts2.iam.gserviceaccount.com
+```
+
+2. Mount your local credentials, by adding the following to your `docker run` command - further explained in [Running Locally](#running-locally)
+
+Linux/macOS
+
+```bash
+ADC_PATH="${HOME}/.config/gcloud/application_default_credentials.json"
+docker run \
+  -e GOOGLE_APPLICATION_CREDENTIALS="/tmp/keys/adc.json" \
+  -v "${ADC_PATH}:/tmp/keys/adc.json:ro" \
+  your-image-name
+
+```
+
+Windows
+
+```bash
+docker run ^
+  -e GOOGLE_APPLICATION_CREDENTIALS="/tmp/keys/adc.json" ^
+  -v "%AppData%/gcloud/application_default_credentials.json:/tmp/keys/adc.json:ro" ^
+  your-image-name
+
+```
+
+### Running locally
+
 All jobs run off a shared Docker Image within GCP. In order to run files locally within the context of this docker image follow these steps:
 
 1. Build the image `docker build -t monitor-jobs:local .`
 2. Run the job within the image. The following command mounts the local file of the repo in the image so that you don't have to rebuild the image for code changes. You will have to rebuild the image if you update dependencies though:
 
+Linux/maxOS
+
 ```bash
-docker run --rm \                                                                      
-  --mount type=bind,source="$(pwd)/src",target=/app/src \ 
+docker run --rm \
+  --mount type=bind,source="$(pwd)/src",target=/app/src \
+  -e GOOGLE_APPLICATION_CREDENTIALS="/tmp/keys/adc.json" \
+  -v "${ADC_PATH}:/tmp/keys/adc.json:ro" \
+  -v "$HOME/.config/gcloud:/root/.config/gcloud" \
+  -e CLOUDSDK_CONFIG=/root/.config/gcloud \
+  monitor-jobs:local \
+  -m {path to code}
+```
+
+Windows
+
+```bash
+docker run --rm \
+  --mount type=bind,source="$(pwd)/src",target=/app/src \
+  -e GOOGLE_APPLICATION_CREDENTIALS="/tmp/keys/adc.json" \
+  -v "${ADC_PATH}:/tmp/keys/adc.json:ro" \
   monitor-jobs:local \
   -m {path to code}
 ```
