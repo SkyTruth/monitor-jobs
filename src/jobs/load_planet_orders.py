@@ -20,7 +20,7 @@ def checkExistingOrders():
         logging.error(f"Error accessing stats/orders/v2 API: {response.content}")
 
     myjson = response.json()
-    print(f"Found {len(myjson['orders'])} new order(s)")
+    logging.info(f"Found {len(myjson['orders'])} new order(s)")
     for order in myjson["orders"]:
         for product in order["products"]:
             for item in product["item_ids"]:
