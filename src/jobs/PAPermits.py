@@ -165,12 +165,7 @@ class PAPermits:
                                                     trans[cols[cellx]] = val
                                 cellx += 1
                             if process_tbl:
-                                if rowx == 0:
-                                    logging.info(f"180 cols: {cols}")
                                 if rowx > 0:
-                                    logging.info("")
-                                    logging.info(f"191 trans: {trans}")
-
                                     COUNTY = trans["COUNTY"]
                                     MUNICIPALITY = trans["MUNICIPALITY"]
                                     PERMIT_ISSUED_DATE = trans["PERMIT ISSUED DATE"].replace(
