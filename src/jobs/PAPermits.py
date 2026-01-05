@@ -103,9 +103,7 @@ class PAPermits:
                         doc = BeautifulSoup(driver.page_source, "html.parser")
 
             except (NoAlertPresentException, TimeoutException) as py_ex:
-                logging.error("TimeoutException")
-                logging.error(py_ex)
-                logging.error(py_ex.args)
+                logging.exception("Selenium Webdriver Timed out. Quitting driver...")
                 raise
             finally:
                 driver.quit()
