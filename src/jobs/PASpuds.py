@@ -241,7 +241,7 @@ class PAPermits:
                     url = config.API_POST_FEEDENTRY
                     response = requests.post(url, data=post_fields)
                     logging.info(title)
-                    logging.info(response.content)
+                    logging.info(f"Post to feedentry status: {response.content}")
 
                 rowx += 1
 

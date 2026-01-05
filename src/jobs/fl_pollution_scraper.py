@@ -132,7 +132,7 @@ class FlPollution:
                                 }
                                 url = config.API_POST_FEEDENTRY
                                 response = requests.post(url, data=post_fields)
-                                logging.info(response.content)
+                                logging.info(f"Post to feedentry status: {response.content}")
                         except Exception as e:
                             logging.error(f"Error processing incident: {e}")
                             raise

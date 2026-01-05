@@ -554,7 +554,7 @@ def main(excel_save_location=None, limit_incident_count=None):
                 )
                 url = config.API_POST_FEEDENTRY
                 response = requests.post(url, data=post_fields)
-                logging.info(response.content)
+                logging.info(f"Post to feedentry status: {response.content}")
 
             else:
                 logging.info(f"Failed to build post for reportnum {reportnum}.")
