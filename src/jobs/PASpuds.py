@@ -54,7 +54,9 @@ class PAPermits:
 
                 # Grab the web page
                 driver.get(self.scraped_webpage_url)
-                logging.info(f"dates: {self.start_date_string} to {self.today_string}")
+                logging.info(
+                    f"Scraping everything from: {self.start_date_string} to {self.today_string}"
+                )
                 from_date = driver.find_element(By.NAME, "ReportViewerControl$ctl04$ctl03$txtValue")
                 driver.execute_script(
                     "arguments[0].setAttribute('value', '" + self.start_date_string + "')",

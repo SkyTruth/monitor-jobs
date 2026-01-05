@@ -65,7 +65,9 @@ class PAPermits:
                 # Grab the web page
                 # New URL as of July, 2023
                 driver.get(self.scraped_webpage_url)
-                logging.info(f"dates: {self.start_date_string} {self.today_string}")
+                logging.info(
+                    f"Scraping everything from: {self.start_date_string} {self.today_string}"
+                )
                 from_date = driver.find_element(By.ID, "InspDtfrm")
                 driver.execute_script(
                     "arguments[0].setAttribute('value', '" + self.start_date_string + "')",
