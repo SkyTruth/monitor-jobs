@@ -213,11 +213,14 @@ class PAPermits:
                     + str(VIOLATION_CODE)
                 )
             except:
-                logging.info(f"VIOLATION_TYPE: {VIOLATION_TYPE}")
-                logging.info(f"INSPECTION_DATE: {INSPECTION_DATE}")
-                logging.info(f"INSPECTION_CLIENT_NAME: {INSPECTION_CLIENT_NAME}")
-                logging.info(f"MUNICIPALITY: {MUNICIPALITY}")
-                logging.info(f"COUNTY: {COUNTY}")
+                logging.error(
+                    f"Failed to build summary | "
+                    f"VIOLATION_TYPE={VIOLATION_TYPE} | "
+                    f"INSPECTION_DATE={INSPECTION_DATE} | "
+                    f"INSPECTION_CLIENT_NAME={INSPECTION_CLIENT_NAME} | "
+                    f"MUNICIPALITY={MUNICIPALITY} | "
+                    f"COUNTY={COUNTY}"
+                )
                 raise
             content = (
                 "<b>Report Details</b>"
