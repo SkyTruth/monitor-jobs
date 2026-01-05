@@ -69,6 +69,7 @@ def getNewAlertsForEmails(l, d, n, alerts2_last_published, aoiid, regionid, emai
         feedentry = cur.fetchall()
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
+        logging.exception("Database error in getNewAlertsForEmails()")
         raise
     finally:
         if conn is not None:
@@ -134,6 +135,7 @@ def read_subscriptions():
         subs = cur.fetchall()
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
+        logging.exception("Database error in read_subscriptions()")
         raise
     finally:
         if conn is not None:
@@ -159,6 +161,7 @@ def read_test_subscriptions(test_email):
         subs = cur.fetchall()
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
+        logging.exception(f"Database error in read_test_subscriptions() for {test_email}")
         raise
     finally:
         if conn is not None:
@@ -188,6 +191,7 @@ def upd_rss_last_email_sent(aoiid, last_published):
         conn.commit()
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
+        logging.exception("Database error in upd_rss_last_email_sent()")
         raise
     finally:
         if conn is not None:
@@ -214,6 +218,7 @@ def upd_issuesubscription_last_email_sent(is_id, last_published):
         conn.commit()
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
+        logging.exception("Database error in upd_issuesubscription_last_email_sent()")
         raise
     finally:
         if conn is not None:
@@ -232,6 +237,7 @@ def get_next_uploaded_tiff():
         next_file = cur.fetchone()
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
+        logging.exception("Database error in get_next_uploaded_tiff()")
         raise
     finally:
         if conn is not None:
@@ -250,6 +256,7 @@ def get_file_upload(storage_file_path):
         file_upload = cur.fetchone()
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
+        logging.exception("Database error in get_file_upload()")
         raise
     finally:
         if conn is not None:
@@ -268,6 +275,7 @@ def get_next_uploaded_tiff_missing_coords():
         next_file = cur.fetchone()
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
+        logging.exception("Database error in get_next_uploaded_tiff_missing_coords()")
         raise
     finally:
         if conn is not None:
@@ -289,6 +297,7 @@ def upd_file_upload(storage_file_path, status, message, latitude=None, longitude
         conn.commit()
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
+        logging.exception("Database error in upd_file_upload()")
         raise
     finally:
         if conn is not None:
@@ -336,6 +345,7 @@ def insert_file_upload(
         conn.commit()
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
+        logging.exception(f"Database error in insert_file_upload() for {email}")
         raise
     finally:
         if conn is not None:
