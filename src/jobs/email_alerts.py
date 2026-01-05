@@ -26,67 +26,6 @@ for arg in sys.argv:
 logging.info(f"test email is {test_email}")
 
 
-def compose_item_message(self, item, msg_templates):
-    params = {}
-    params["link"] = item["links"][0]["href"]
-    params["title"] = item["title"]
-    params["summary"] = item["summary"]
-    tags = ""
-    if "tags" in item:
-        for t in item["tags"]:
-            if tags != "":
-                tags = tags + ", "
-            tags = tags + t["term"]
-    params["tags"] = ", ".join(tags)
-    html_msg = msg_templates["html"]["item"].substitute(params)
-    text_msg = msg_templates["text"]["item"].substitute(params)
-    return {"text": text_msg, "html": html_msg}
-
-
-def format_tags(item):
-    tags = ""
-    try:
-        for tag in tags:
-            if tags != "":
-                tags = tags + ", "
-        tags = tags + tag
-        return tags
-    except error:
-        return item
-
-
-def parse_rss_url(url):
-    p = urlparse(url)
-    q = parse_qs(p.query)
-
-    for k in q.keys():
-        q[k] = q[k][0]
-
-    bounds = None
-
-    l = q.get("l")
-    if l:
-        coords = re.split("[:,]", l)
-        if len(coords) == 4:
-            bounds = [
-                [min(coords[0], coords[2]), min(coords[1], coords[3])],
-                [max(coords[0], coords[2]), max(coords[1], coords[3])],
-            ]
-    bbox = q.get("BBOX")
-    if bbox:
-        coords = re.split("[:,]", bbox)
-        if len(coords) == 4:
-            bounds = [
-                [min(coords[1], coords[3]), min(coords[0], coords[2])],
-                [max(coords[1], coords[3]), max(coords[0], coords[2])],
-            ]
-
-    if bounds:
-        q["bounds"] = bounds
-
-    return q
-
-
 def strip_accents(text):
     try:
         text = unicode(text, "utf-8")
