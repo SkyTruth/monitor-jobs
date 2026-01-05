@@ -135,11 +135,7 @@ class PAPermits:
     def process_page(self, doc):
         try:
             tbl = doc.find("table", attrs={"cols": "14"})
-            try:
-                rows = tbl.find_all("tr", attrs={"valign": "top"})
-            except Exception as e:
-                logging.error(e)
-                raise
+            rows = tbl.find_all("tr", attrs={"valign": "top"})
             cols = []
             rowx = 0
             for row in rows:
