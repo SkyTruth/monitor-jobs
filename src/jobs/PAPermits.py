@@ -313,7 +313,9 @@ class PAPermits:
                             rowx += 1
 
         except Exception as e:
-            logging.error(f"process_page error: {str(e)}")
+            logging.error(
+                f"PA Permit scraper failed to process {summary} page with error, {str(e)}"
+            )
 
 
 # /* ======================================================================= */#
