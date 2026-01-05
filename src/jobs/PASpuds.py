@@ -120,19 +120,10 @@ class PAPermits:
         # Finish up
         for num, source_id in enumerate(self.source_ids, start=0):
             self.after_counts[num] = self.db.get_feedentry_count(source_id)["count"]
-        email_subj = "PA DEP SPUD finished ("
         for num, source_id in enumerate(self.source_ids, start=0):
             logging.info(
                 f"{source_id} before: {int(self.before_counts[num])} after: {int(self.after_counts[num])} total added: {int(self.after_counts[num] - self.before_counts[num])}"
             )
-            email_subj += (
-                "source_id:"
-                + repr(source_id)
-                + " "
-                + repr(int(self.after_counts[num] - self.before_counts[num]))
-                + " added  "
-            )
-        email_subj += ")"
 
     def uuid3_str(self, namespace=uuid.NAMESPACE_URL, name=None):
         return self.uuid_str(uuid.uuid3(namespace, name))
