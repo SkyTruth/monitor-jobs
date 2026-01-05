@@ -52,7 +52,6 @@ class PAPermits:
                 options.add_argument("--no-sandbox")
                 options.add_argument("--disable-gpu")
                 driver = webdriver.Firefox(options=options)
-                logging.info("getting driver")
                 driver.get(self.scraped_webpage_url)
                 logging.info(
                     f"Scraping everything from: {self.start_date_string} to {self.today_string}"
@@ -113,7 +112,7 @@ class PAPermits:
                 driver.quit()
 
         except Exception as e:
-            logging.error(f"PAPermits error: {str(e)}")
+            logging.error(f"Main PAPermits error: {str(e)}")
             raise
         # Finish up
         for num, source_id in enumerate(self.source_ids, start=0):
@@ -313,6 +312,7 @@ class PAPermits:
             logging.error(
                 f"PA Permit scraper failed to process {summary} page with error, {str(e)}"
             )
+            raise
 
 
 # /* ======================================================================= */#

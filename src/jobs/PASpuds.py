@@ -50,7 +50,6 @@ class PAPermits:
                 options.add_argument("--disable-gpu")
                 driver = webdriver.Firefox(options=options)
                 # Initialize a Firefox webdriver
-                logging.info("getting driver")
 
                 # Grab the web page
                 driver.get(self.scraped_webpage_url)
@@ -244,7 +243,8 @@ class PAPermits:
                 rowx += 1
 
         except Exception as e:
-            logging.error(f"Process Page PA DEP SPUD Exception:  {e}")
+            logging.error(f"PA DEP SPUD failed to process {summary} page with error, {str(e)}")
+            raise
 
 
 # /* ======================================================================= */#

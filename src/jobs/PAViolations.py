@@ -289,7 +289,9 @@ class PAPermits:
             logging.info(f"Post to feedentry status: {response.content}")
 
         except Exception as e:
-            logging.exception(f"Process Page PA DEP Violation Exception: {e}")
+            logging.error(
+                f"PA Violations scraper failed to process {summary} page with error, {str(e)}"
+            )
             raise
 
 
