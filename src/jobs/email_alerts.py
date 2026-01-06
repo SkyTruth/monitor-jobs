@@ -44,6 +44,7 @@ if __name__ == "__main__":
         logging.info(f"number of subscriptions with new alerts: {len(subs)}")
     except Exception as e:
         logging.error(f"Error getting subscriptions: {e}")
+        raise
 
     emails_sent = 0
     dates_updated = 0
@@ -56,8 +57,6 @@ if __name__ == "__main__":
         aoidescr = strip_accents(sub[1])
         aoiid = str(sub[0])
         email = str(sub[2])
-        if email != "ethan@skytruth.org" and email != "will@skytruth.org":
-            continue
 
         alerts2_latest_published = "2018-10-01"
         if test_email == None:
