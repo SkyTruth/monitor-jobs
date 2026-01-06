@@ -16,6 +16,9 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as cond
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 
 class PAPermits:
@@ -47,10 +50,12 @@ class PAPermits:
                 options.add_argument("--disable-gpu")
                 driver = webdriver.Firefox(options=options)
                 # Initialize a Firefox webdriver
-                print("getting driver")
+
                 # Grab the web page
                 driver.get(self.scraped_webpage_url)
-                print("dates:", self.start_date_string, self.today_string)
+                logging.info(
+                    f"Scraping everything from: {self.start_date_string} to {self.today_string}"
+                )
                 from_date = driver.find_element(By.NAME, "ReportViewerControl$ctl04$ctl03$txtValue")
                 driver.execute_script(
                     "arguments[0].setAttribute('value', '" + self.start_date_string + "')",
@@ -61,7 +66,6 @@ class PAPermits:
                     "arguments[0].setAttribute('value', '" + self.today_string + "')",
                     to_date,
                 )
-                print("submit")
                 search_form = driver.find_element(By.NAME, "ReportViewerControl$ctl04$ctl00")
                 search_form.click()
                 # Wait as long as required, or maximum of 30 sec for alert to appear
@@ -80,13 +84,8 @@ class PAPermits:
                 current_page = 1
 
                 while current_page <= total_pages:
-                    print("")
-                    print(
-                        "processing page ",
-                        current_page,
-                        " of ",
-                        total_pages,
-                        datetime.now(tz=None),
+                    logging.info(
+                        f"processing page {current_page} of {total_pages} {datetime.now(tz=None)}"
                     )
                     doc = BeautifulSoup(driver.page_source, "html.parser")
                     self.process_page(doc)
@@ -106,43 +105,26 @@ class PAPermits:
                         doc = BeautifulSoup(driver.page_source, "html.parser")
 
             except (NoAlertPresentException, TimeoutException) as py_ex:
-                print("TimeoutException")
-                print(py_ex)
-                print(py_ex.args)
+                logging.exception(
+                    "Selenium Webdriver Timed out while processing page. Quitting driver..."
+                )
+                raise
             except Exception as ex:
-                print("Some other exception occurred:")
-                print(ex)
                 raise
             finally:
                 driver.quit()
 
         except Exception as e:
-            print("Main PA DEP SPUD Exception:", e)
+            logging.info(f"Main PA DEP SPUD Exception: {e}")
             raise
 
         # Finish up
         for num, source_id in enumerate(self.source_ids, start=0):
             self.after_counts[num] = self.db.get_feedentry_count(source_id)["count"]
-        email_subj = "PA DEP SPUD finished ("
         for num, source_id in enumerate(self.source_ids, start=0):
-            print(
-                "source_id:",
-                source_id,
-                " before:",
-                int(self.before_counts[num]),
-                " after:",
-                int(self.after_counts[num]),
-                " total added:",
-                int(self.after_counts[num] - self.before_counts[num]),
+            logging.info(
+                f"{source_id} before: {int(self.before_counts[num])} after: {int(self.after_counts[num])} total added: {int(self.after_counts[num] - self.before_counts[num])}"
             )
-            email_subj += (
-                "source_id:"
-                + repr(source_id)
-                + " "
-                + repr(int(self.after_counts[num] - self.before_counts[num]))
-                + " added  "
-            )
-        email_subj += ")"
 
     def uuid3_str(self, namespace=uuid.NAMESPACE_URL, name=None):
         return self.uuid_str(uuid.uuid3(namespace, name))
@@ -154,12 +136,7 @@ class PAPermits:
     def process_page(self, doc):
         try:
             tbl = doc.find("table", attrs={"cols": "14"})
-            try:
-                rows = tbl.find_all("tr", attrs={"valign": "top"})
-            except Exception as e:
-                print(e)
-                return
-            print("rows=", len(rows), datetime.now(tz=None))
+            rows = tbl.find_all("tr", attrs={"valign": "top"})
             cols = []
             rowx = 0
             for row in rows:
@@ -178,8 +155,6 @@ class PAPermits:
                             else:
                                 trans[cols[cellx]] = val
                     cellx += 1
-                print("")
-                print("trans:", trans)
                 if rowx > 0:
                     SPUD_DATE = trans["SPUD DATE"]
                     API = trans["API / PERMIT"]
@@ -193,7 +168,7 @@ class PAPermits:
                     LONGITUDE = trans["LONGITUDE"]
                     UNCONVENTIONAL = trans["UNCONVENTIONAL"]
 
-                    print("api_permit:", API, " found ", LATITUDE, LONGITUDE)
+                    logging.info(f"api_permit: {API}, found, {LATITUDE}, {LONGITUDE}")
                     incident_datetime = SPUD_DATE
                     title = "%s Reports Drilling Started (SPUD) in %s Township" % (
                         OPERATOR,
@@ -214,7 +189,6 @@ class PAPermits:
                         "%s reports drilling started on %s at site %s in %s township, %s county"
                         % (OPERATOR, SPUD_DATE, FARM_NAME, MUNICIPALITY, COUNTY)
                     )
-                    print("summary:", summary)
                     content = (
                         "<b>Report Details</b>"
                         + '<table width = "100%"><tr><th>Operator: </th><td>'
@@ -261,16 +235,16 @@ class PAPermits:
                         "status": "published",
                     }
 
-                    print("post_fields:", post_fields)
-                    print(summary)
                     url = config.API_POST_FEEDENTRY
                     response = requests.post(url, data=post_fields)
-                    print(response.content)
+                    logging.info(title)
+                    logging.info(f"Post to feedentry status: {response.content}")
 
                 rowx += 1
 
         except Exception as e:
-            print("Process Page PA DEP SPUD Exception:", e)
+            logging.error(f"PA DEP SPUD failed to process {summary} page with error, {str(e)}")
+            raise
 
 
 # /* ======================================================================= */#

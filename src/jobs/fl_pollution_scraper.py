@@ -11,6 +11,9 @@ import xlrd
 sys.path.insert(0, "../")
 from src.utils import config
 from src.utils.db import NrcDatabase
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 
 class FlPollution:
@@ -34,23 +37,20 @@ class FlPollution:
         # /* ----------------------------------------------------------------------- */#
 
         if download_file:
-            print("Downloading: %s" % download_url)
-            print("Target: %s" % file_to_process)
+            logging.info(f"Downloading: {download_url} to {file_to_process}")
             try:
                 self.download(download_url, file_to_process, overwrite_downloaded_file)
             except urllib.error.HTTPError as e:
-                print("ERROR: Could not download from URL: %s" % download_url)
-                print("       URLLIB Error: %s" % e)
+                logging.error(f"Could not download from URL: {download_url} - {e}")
                 raise
 
-        print("Opening workbook: %s" % file_to_process)
+        logging.info(f"Opening workbook: {file_to_process}")
         with xlrd.open_workbook(file_to_process, "r") as workbook:
             # sheet = workbook.sheet_by_name(map_def['Incident Report List'])
             sheet_names = workbook.sheet_names()
-            print("Sheet Names", sheet_names)
+            logging.info(f"Sheet Names: {sheet_names}")
             incidents = workbook.sheet_by_name(sheet_names[0])
             for row_idx in range(0, incidents.nrows):  # Iterate through rows
-                # print('Row: %s' % row_idx)  # Print row number
                 if row_idx > 0:  # and row_idx < 5:
                     Incident_Name = incidents.cell(row_idx, 0).value
                     SWO_Incident_Number = incidents.cell(row_idx, 1).value
@@ -71,12 +71,8 @@ class FlPollution:
                             ):
                                 pass
                             elif str(latitude) > "" and str(longitude) > "":
-                                print(
-                                    str(SWO_Incident_Number),
-                                    str(latitude),
-                                    str(longitude),
-                                    Incident_Name,
-                                    Facility_Name,
+                                logging.info(
+                                    f"Adding incident {SWO_Incident_Number} - {Incident_Name} at {latitude}, {longitude}"
                                 )
                                 id = hashlib.md5(
                                     (
@@ -136,15 +132,15 @@ class FlPollution:
                                 }
                                 url = config.API_POST_FEEDENTRY
                                 response = requests.post(url, data=post_fields)
-                                print(response.content)
+                                logging.info(f"Post to feedentry status: {response.content}")
                         except Exception as e:
-                            print("Error processing incident:", e)
+                            logging.error(f"Error processing incident: {e}")
                             raise
 
         after_count = self.db.get_feedentry_count(self.source_id)["count"]
-        print("before:", before_count)
-        print("after:", after_count)
-        print("total added:", (before_count - after_count))
+        logging.info(f"before: {before_count}")
+        logging.info(f"after: {after_count}")
+        logging.info(f"total added: {before_count - after_count}")
 
     # /* ======================================================================= */#
     # /*     Define name_current_file() function

@@ -18,6 +18,9 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from src.utils import config
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 
 class PAPermits:
@@ -49,9 +52,10 @@ class PAPermits:
                 options.add_argument("--no-sandbox")
                 options.add_argument("--disable-gpu")
                 driver = webdriver.Firefox(options=options)
-                print("getting driver")
                 driver.get(self.scraped_webpage_url)
-                print("dates:", self.start_date_string, self.today_string)
+                logging.info(
+                    f"Scraping everything from: {self.start_date_string} to {self.today_string}"
+                )
                 from_date = driver.find_element(By.NAME, "ReportViewerControl$ctl04$ctl03$txtValue")
                 driver.execute_script(
                     "arguments[0].setAttribute('value', '" + self.start_date_string + "')",
@@ -79,13 +83,8 @@ class PAPermits:
                 current_page = 1
 
                 while current_page <= total_pages:
-                    print("")
-                    print(
-                        "processing page ",
-                        current_page,
-                        " of ",
-                        total_pages,
-                        datetime.now(tz=None),
+                    logging.info(
+                        f"processing page {current_page} of {total_pages} {datetime.now(tz=None)}"
                     )
                     doc = BeautifulSoup(driver.page_source, "html.parser")
                     self.process_page(doc)
@@ -105,37 +104,23 @@ class PAPermits:
                         doc = BeautifulSoup(driver.page_source, "html.parser")
 
             except (NoAlertPresentException, TimeoutException) as py_ex:
-                print("TimeoutException")
-                print(py_ex)
-                print(py_ex.args)
+                logging.exception(
+                    "Selenium Webdriver Timed out while processing page. Quitting driver..."
+                )
                 raise
             finally:
                 driver.quit()
 
         except Exception as e:
-            print("PAPermits error:", str(e), flush=True)
+            logging.error(f"Main PAPermits error: {str(e)}")
             raise
         # Finish up
         for num, source_id in enumerate(self.source_ids, start=0):
             self.after_counts[num] = self.db.get_feedentry_count(source_id)["count"]
-        email_subj = "PA DEP Permit finished ("
         for num, source_id in enumerate(self.source_ids, start=0):
-            print(
-                source_id,
-                " before:",
-                int(self.before_counts[num]),
-                " after:",
-                int(self.after_counts[num]),
-                " total added:",
-                int(self.after_counts[num] - self.before_counts[num]),
+            logging.info(
+                f"{source_id} before: {int(self.before_counts[num])} after: {int(self.after_counts[num])} total added: {int(self.after_counts[num] - self.before_counts[num])}"
             )
-            email_subj += (
-                repr(source_id)
-                + " "
-                + repr(int(self.after_counts[num] - self.before_counts[num]))
-                + " "
-            )
-        email_subj += ")"
 
     def uuid3_str(self, namespace=uuid.NAMESPACE_URL, name=None):
         return self.uuid_str(uuid.uuid3(namespace, name))
@@ -181,12 +166,7 @@ class PAPermits:
                                                     trans[cols[cellx]] = val
                                 cellx += 1
                             if process_tbl:
-                                if rowx == 0:
-                                    print("180 cols:", cols, flush=True)
                                 if rowx > 0:
-                                    print("", flush=True)
-                                    print("191 trans:", trans, flush=True)
-
                                     COUNTY = trans["COUNTY"]
                                     MUNICIPALITY = trans["MUNICIPALITY"]
                                     PERMIT_ISSUED_DATE = trans["PERMIT ISSUED DATE"].replace(
@@ -213,17 +193,12 @@ class PAPermits:
                                     else:
                                         horiz = "N"
                                         if CONFIGURATION not in ("Vertical Well",):
-                                            print("Unknown PA Configuration: " + CONFIGURATION)
+                                            pass
 
                                     latitude = LATITUDE_DECIMAL
                                     longitude = LONGITUDE_DECIMAL
-                                    print(
-                                        "WELL_API:",
-                                        WELL_API,
-                                        " latitude:",
-                                        latitude,
-                                        " longitude:",
-                                        longitude,
+                                    logging.info(
+                                        f"WELL_API: {WELL_API} latitude: {latitude} longitude: {longitude}"
                                     )
                                     self.db.insertPaPermit(
                                         str(WELL_API), str(latitude), str(longitude)
@@ -327,16 +302,17 @@ class PAPermits:
                                         "tags": tags,
                                         "status": "published",
                                     }
-                                    print("", flush=True)
-                                    print(298, post_fields, flush=True)
                                     url = config.API_POST_FEEDENTRY
                                     response = requests.post(url, data=post_fields)
-                                    print(response.content)
+                                    logging.info(f"Post to feedentry status: {response.content}")
 
                             rowx += 1
 
         except Exception as e:
-            print("process_page error:", str(e), flush=True)
+            logging.error(
+                f"PA Permit scraper failed to process {summary} page with error, {str(e)}"
+            )
+            raise
 
 
 # /* ======================================================================= */#

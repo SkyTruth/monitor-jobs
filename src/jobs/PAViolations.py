@@ -17,6 +17,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as cond
 from selenium.webdriver.support.ui import Select, WebDriverWait
 from selenium.webdriver.firefox.options import Options
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 
 class PAPermits:
@@ -43,9 +46,6 @@ class PAPermits:
 
             try:
                 # Initialize a Firefox webdriver
-                cwd = os.getcwd()
-                print(cwd)
-
                 options = Options()
                 download_dir = os.path.join("/tmp", "rawdata")
                 os.makedirs(download_dir, exist_ok=True)
@@ -65,7 +65,9 @@ class PAPermits:
                 # Grab the web page
                 # New URL as of July, 2023
                 driver.get(self.scraped_webpage_url)
-                print("dates:", self.start_date_string, self.today_string)
+                logging.info(
+                    f"Scraping everything from: {self.start_date_string} {self.today_string}"
+                )
                 from_date = driver.find_element(By.ID, "InspDtfrm")
                 driver.execute_script(
                     "arguments[0].setAttribute('value', '" + self.start_date_string + "')",
@@ -81,57 +83,39 @@ class PAPermits:
 
                 search_form = driver.find_element(By.ID, "btnReport")
                 search_form.click()
-                print("submit", datetime.now(tz=None))
                 # Wait as long as required, or maximum of 30 sec for alert to appear
                 WebDriverWait(driver, 30).until(
                     cond.invisibility_of_element_located((By.ID, "pleaseWaitModal"))
                 )
-                print("after", datetime.now(tz=None))
-                print("Writing to CSV file:", file_name)
                 with open(file_name) as csv_file:
                     csv_reader = csv.reader(csv_file, delimiter=",")
                     line_count = 0
                     for row in csv_reader:
                         if line_count == 0:
-                            print(f"Column names are {', '.join(row)}")
+                            logging.info(f"Column names are {', '.join(row)}")
                             line_count += 1
                         else:
                             self.examine_row(row)
                             line_count += 1
-                    print(f"Processed {line_count} lines.")
+                    logging.info(f"Processed {line_count} lines.")
 
             except Exception as py_ex:
-                print("TimeoutException")
-                print(py_ex)
-                print(py_ex.args)
+                logging.exception("TimeoutException while processing PA DEP page")
+                logging.debug(f"Exception args: {py_ex.args}")
             finally:
                 driver.quit()
 
         except Exception as e:
-            print("Main PA DEP Violation Exception:", e)
+            logging.exception(f"Main PA DEP Violation Exception: {e}")
             raise
 
         # Finish up
         for num, source_id in enumerate(self.source_ids, start=0):
             self.after_counts[num] = self.db.get_feedentry_count(source_id)["count"]
-        email_subj = "PA DEP Violation finished ("
         for num, source_id in enumerate(self.source_ids, start=0):
-            print(
-                source_id,
-                " before:",
-                int(self.before_counts[num]),
-                " after:",
-                int(self.after_counts[num]),
-                " total added:",
-                int(self.after_counts[num] - self.before_counts[num]),
+            logging.info(
+                f"{source_id} before: {int(self.before_counts[num])} after: {int(self.after_counts[num])} total added: {int(self.after_counts[num] - self.before_counts[num])}"
             )
-            email_subj += (
-                repr(source_id)
-                + " "
-                + repr(int(self.after_counts[num] - self.before_counts[num]))
-                + " "
-            )
-        email_subj += ")"
 
     def uuid3_str(self, namespace=uuid.NAMESPACE_URL, name=None):
         return self.uuid_str(uuid.uuid3(namespace, name))
@@ -165,27 +149,21 @@ class PAPermits:
             VIOLATION_CODE = row[20]
             VIOLATION_TYPE = row[21]
             if VIOLATION_ID:
-                print("VIOLATION_ID:", VIOLATION_ID)
+                pass
             else:
                 return
 
             if API_PERMIT == None or API_PERMIT == "":
-                print("No API_PERMIT found")
                 return
 
             pa_permit = self.db.getPaPermit(API_PERMIT)
             if pa_permit == None:
-                print("api_permit:", API_PERMIT, " original permit not found")
+                logging.info(f"api_permit: {API_PERMIT} original permit not found")
                 return
-
-            print("")
-            print("")
-            print("row:", row)
-            print("")
 
             latitude = pa_permit["lat"]
             longitude = pa_permit["lng"]
-            print("api_permit:", API_PERMIT, " found ", latitude, longitude)
+            logging.info(f"api_permit: {API_PERMIT} found {latitude} {longitude}")
 
             incident_datetime = INSPECTION_DATE
             if not INSPECTION_CLIENT_NAME:
@@ -235,12 +213,15 @@ class PAPermits:
                     + str(VIOLATION_CODE)
                 )
             except:
-                print("VIOLATION_TYPE:", VIOLATION_TYPE)
-                print("INSPECTION_DATE:", INSPECTION_DATE)
-                print("INSPECTION_CLIENT_NAME:", INSPECTION_CLIENT_NAME)
-                print("MUNICIPALITY:", MUNICIPALITY)
-                print("COUNTY:", COUNTY)
-                return
+                logging.error(
+                    f"Failed to build summary | "
+                    f"VIOLATION_TYPE={VIOLATION_TYPE} | "
+                    f"INSPECTION_DATE={INSPECTION_DATE} | "
+                    f"INSPECTION_CLIENT_NAME={INSPECTION_CLIENT_NAME} | "
+                    f"MUNICIPALITY={MUNICIPALITY} | "
+                    f"COUNTY={COUNTY}"
+                )
+                raise
             content = (
                 "<b>Report Details</b>"
                 + '<table width = "100%"><tr><th>Inspection Client: </th><td>'
@@ -283,13 +264,8 @@ class PAPermits:
             )
 
             tags = ["PADEP", "frack", "violation", "drilling"]
-            print(
-                "summary:",
-                summary,
-                " VIOLATION_ID:",
-                VIOLATION_ID,
-                " VIOLATION_DATE:",
-                VIOLATION_DATE,
+            logging.info(
+                f"summary: {summary} VIOLATION_ID: {VIOLATION_ID} VIOLATION_DATE: {VIOLATION_DATE}"
             )
             unique = VIOLATION_ID
             feed_entry_id = self.uuid3_str(name=unique)
@@ -309,12 +285,13 @@ class PAPermits:
                 "status": "published",
             }
             url = config.API_POST_FEEDENTRY
-            print("post_fields:", post_fields)
             response = requests.post(url, data=post_fields)
-            print(response.content)
+            logging.info(f"Post to feedentry status: {response.content}")
 
         except Exception as e:
-            print("Process Page PA DEP Violation Exception:", e)
+            logging.error(
+                f"PA Violations scraper failed to process {summary} page with error, {str(e)}"
+            )
             raise
 
 
