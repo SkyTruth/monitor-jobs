@@ -511,6 +511,7 @@ class NrcIncident:
 
 def main(excel_save_location=None, limit_incident_count=None):
     current_year = datetime.strftime(datetime.now(), "%y")
+    previous_year = datetime.strftime(datetime.now().replace(year=datetime.now().year - 1), "%y")
     if excel_save_location is None:  # Use docker /tmp directory
         excel_save_location = "/tmp"
     file_name = f"CY{current_year}.xlsx"
@@ -523,11 +524,25 @@ def main(excel_save_location=None, limit_incident_count=None):
         "INCIDENT_DETAILS",
         "MATERIAL_INVOLVED",
     ]
-    db = NrcDatabase()
-    last_posted_reportnum = db.get_last_posted_reportnum()[0]
-    nrc_dfs = pd.read_excel(excel_save_location + "/" + file_name, sheet_name=nrc_sheets)
+    xls = pd.ExcelFile(excel_save_location + "/" + file_name)
+    # check to see if all required sheets are present in the xls file
+    if not set(nrc_sheets).issubset(xls.sheet_names):
+        logging.error("No NRC data found in downloaded spreadsheet. Reverting to previous year.")
+
+        previous_file_name = f"CY{previous_year}.xlsx"
+        previous_download_url = f"https://nrc.uscg.mil/FOIAFiles/{previous_file_name}"
+
+        download(previous_download_url, excel_save_location, previous_file_name)
+
+        excel_path = os.path.join(excel_save_location, previous_file_name)
+    else:
+        excel_path = os.path.join(excel_save_location, file_name)
+    nrc_dfs = pd.read_excel(excel_path, sheet_name=nrc_sheets)
     incident_commons = nrc_dfs["INCIDENT_COMMONS"]
     most_recent_reportnum = incident_commons["SEQNOS"].max()
+
+    db = NrcDatabase()
+    last_posted_reportnum = db.get_last_posted_reportnum()[0]
     logging.info(
         f"Last posted reportnum: {last_posted_reportnum}",
     )
