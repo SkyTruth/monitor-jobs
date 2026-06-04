@@ -17,6 +17,32 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+class ProgressLogger:
+    """
+    Log a text progress bar at fixed percentage steps. Cloud Logging turns
+    every line into a separate entry (carriage-return bars like tqdm's don't
+    render), so emit one line per `step` percent instead of one per item
+    """
+
+    def __init__(self, label, total, step=10, width=20):
+        self.label = label
+        self.total = total
+        self.step = step
+        self.width = width
+        self.next_pct = 0
+
+    def update(self, current):
+        if self.total <= 0:
+            return
+        pct = min(100, int(current * 100 / self.total))
+        if pct < self.next_pct:
+            return
+        filled = int(self.width * pct / 100)
+        bar = "█" * filled + "·" * (self.width - filled)
+        logger.info(f"{self.label} |{bar}| {pct}% ({current}/{self.total})")
+        self.next_pct = (pct // self.step + 1) * self.step
+
+
 class Tif2Tiles:
     def __init__(self):
         creds, _ = default()
@@ -38,12 +64,13 @@ class Tif2Tiles:
         download_path = os.path.join(self.tiff_file_dir, file_name)
         request = self.service.files().get_media(fileId=file_id, supportsAllDrives=True)
 
+        progress = ProgressLogger(f"Downloading {file_name}", 100)
         with io.FileIO(download_path, "wb") as handler:
             downloader = MediaIoBaseDownload(handler, request)
             done = False
             while not done:
                 status, done = downloader.next_chunk()
-                logger.info(f"Download {int(status.progress() * 100)}%")
+                progress.update(int(status.progress() * 100))
 
         handler.close()
 
@@ -268,11 +295,44 @@ class Tif2Tiles:
                 tif_file_name,
                 output_tileset_folder_path,
             ]
-            subprocess.run(cmd, check=True)
+            self.run_gdal2tiles(cmd)
         except Exception as e:
             logger.exception(f"Failed to convert geotiff to raster tiles {(str(e))}")
             self.error(storage_file_path, "convert_to_tiles", str(e))
             raise
+
+    def run_gdal2tiles(self, cmd):
+        """
+        Run gdal2tiles, re-emitting its dot progress ("0...10...20") as one
+        log line per step. gdal2tiles prints those dots without newlines, so
+        left alone they arrive in Cloud Logging as a single garbled line
+        """
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+
+        stage = "Tiling"
+        line = ""
+        digits = ""
+        while True:
+            char = process.stdout.read(1)
+            if not char:
+                break
+            if char.isdigit():
+                digits += char
+            else:
+                if digits:
+                    logger.info(f"{stage}: {digits}%")
+                    digits = ""
+            if char == "\n":
+                # Stage headers look like "Generating Base Tiles:"
+                if "Generating" in line:
+                    stage = line.strip().rstrip(":")
+                line = ""
+            else:
+                line += char
+
+        returncode = process.wait()
+        if returncode != 0:
+            raise subprocess.CalledProcessError(returncode, cmd)
 
     def upload_tiles_to_storage(self, tile_folder_name, storage_file_path, folder_name):
         try:
@@ -280,7 +340,10 @@ class Tif2Tiles:
             gcs_path = os.path.join(gcs_parent, tile_folder_name)
             tile_path = os.path.join(self.tile_file_dir, tile_folder_name)
 
-            logger.info(f"Uploading raster tiles to gs://{self.tiles_storage_bucket}/{gcs_path}")
+            tile_count = sum(len(files) for _, _, files in os.walk(tile_path))
+            logger.info(
+                f"Uploading {tile_count} tiles to gs://{self.tiles_storage_bucket}/{gcs_path}"
+            )
 
             cmd = [
                 "gcloud",
@@ -292,7 +355,23 @@ class Tif2Tiles:
                 f"gs://{self.tiles_storage_bucket}/{gcs_path}",
             ]
 
-            subprocess.run(cmd, check=True)
+            # rsync logs one "Copying ..." line per tile; swallow those and
+            # log a progress bar instead
+            process = subprocess.Popen(
+                cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
+            )
+            progress = ProgressLogger(f"Uploading {tile_folder_name}", tile_count)
+            copied = 0
+            for line in process.stdout:
+                if line.startswith("Copying"):
+                    copied += 1
+                    progress.update(copied)
+
+            returncode = process.wait()
+            if returncode != 0:
+                raise subprocess.CalledProcessError(returncode, cmd)
+
+            logger.info(f"Upload complete: {copied} of {tile_count} tiles copied")
 
         except Exception as e:
             logger.exception(f"Failed to upload map tiles to GCS {str(e)}")
