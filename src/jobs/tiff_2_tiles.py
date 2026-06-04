@@ -1,6 +1,7 @@
 import io
 import logging
 import os
+import shutil
 import subprocess
 from tempfile import mkdtemp
 
@@ -28,6 +29,9 @@ class Tif2Tiles:
         self.tiles_storage_bucket = "alerts-storage"
         self.bucket_tile_parent = "tif_2_tiles"
 
+        self.min_zoom = int(os.environ.get("TILE_MIN_ZOOM", "10"))
+        self.max_zoom = int(os.environ.get("TILE_MAX_ZOOM", "16"))
+
     def download_file(self, file_id, file_name):
         logger.info(f"Downloading {file_name}")
 
@@ -43,121 +47,155 @@ class Tif2Tiles:
 
         handler.close()
 
-    def main(self):
-        try:
+    def list_drive_files(self):
+        """List every file in the shared drive, following pagination."""
+        items = []
+        page_token = None
+        while True:
             results = (
                 self.service.files()
                 .list(
-                    fields="*",
+                    fields="nextPageToken, files(id, name, parents)",
                     corpora="drive",
                     supportsAllDrives=True,
                     driveId=self.drive_id,
                     includeItemsFromAllDrives=True,
+                    pageSize=1000,
+                    pageToken=page_token,
                 )
                 .execute()
             )
+            items.extend(results.get("files", []))
+            page_token = results.get("nextPageToken")
+            if not page_token:
+                return items
 
-            items = results.get("files", [])
+    def main(self):
+        items = self.list_drive_files()
 
-            if not items:
-                return "No files in drive"
-            folders = {}
-            for item in items:
-                item_parents = item["parents"]
-                if item_parents == [self.drive_id] and not folders.get(item["id"]):
-                    folders[item["id"]] = item["name"]
+        if not items:
+            return "No files in drive"
 
-            count = 0
-            for item in items:
-                item_parent = item["parents"][0]
-                if folders.get(item_parent):
-                    file_name = item["name"]
+        folders = {}
+        for item in items:
+            item_parents = item.get("parents", [])
+            if item_parents == [self.drive_id] and not folders.get(item["id"]):
+                folders[item["id"]] = item["name"]
 
-                    if not file_name.upper().endswith(".TIF") and not file_name.upper().endswith(
-                        ".TIFF"
-                    ):
-                        continue
+        processed = 0
+        failed = 0
+        for item in items:
+            item_parent = item.get("parents", [None])[0]
+            folder_name = folders.get(item_parent)
+            if not folder_name:
+                continue
 
-                    file_id = item["id"]
-                    folder_name = folders.get(item_parent)
-                    storage_file_path = folder_name + "/" + file_name
-                    prev_uploaded_file = db.get_file_upload(storage_file_path)
+            file_name = item["name"]
+            if not file_name.upper().endswith(".TIF") and not file_name.upper().endswith(".TIFF"):
+                continue
 
-                    if prev_uploaded_file is None:
-                        count += 1
-                        status = "new"
-                        message = "new"
-                        email = "monitor-jobs"
-                        user_id = 1  # The DB needs this so stub in a value
+            storage_file_path = folder_name + "/" + file_name
 
-                        db.insert_file_upload(
-                            storage_file_path,
-                            status,
-                            message,
-                            email,
-                            user_id,
-                            file_name,
-                            folder_name,
-                            latitude=None,
-                            longitude=None,
-                        )
+            if db.get_file_upload(storage_file_path) is not None:
+                continue
 
-                        self.download_file(file_id, file_name)
+            try:
+                self.process_file(item["id"], file_name, folder_name, storage_file_path)
+                processed += 1
+            except Exception as e:
+                failed += 1
+                logger.exception(f"Failed to process {storage_file_path}")
+                self.error(storage_file_path, "error", str(e))
 
-                        db.upd_file_upload(storage_file_path, "downloaded", "downloaded")
+        logger.info(f"tiff_2_tiles finished: {processed} processed, {failed} failed")
 
-                        bucket = self.tiles_storage_bucket + folder_name
+    def process_file(self, file_id, file_name, folder_name, storage_file_path):
+        status = "new"
+        message = "new"
+        email = "monitor-jobs"
+        user_id = 1  # The DB needs this so stub in a value
 
-                        tile_folder_name = file_name[: file_name.index(".")]
+        db.insert_file_upload(
+            storage_file_path,
+            status,
+            message,
+            email,
+            user_id,
+            file_name,
+            folder_name,
+            latitude=None,
+            longitude=None,
+        )
 
-                        self.scale_to_8bits(
-                            file_name,
-                            storage_file_path,
-                        )
+        tile_folder_name = file_name[: file_name.index(".")]
 
-                        # Convert to tiles
-                        self.convert_to_tiles(
-                            file_name,
-                            tile_folder_name,
-                            storage_file_path,
-                        )
-                        # Upload tiles to storage
-                        self.upload_tiles_to_storage(
-                            tile_folder_name,
-                            bucket,
-                            folder_name,
-                        )
+        try:
+            self.download_file(file_id, file_name)
 
-                        status = "convertedToTiles"
-                        message = "success"
+            db.upd_file_upload(storage_file_path, "downloaded", "downloaded")
 
-                        # Try to get lat/lngs
-                        latitude = None
-                        longitude = None
-                        try:
-                            full_path_to_downloaded_file = self.tiff_file_dir + "/" + file_name
-                            [latitude, longitude] = self.get_centroid(full_path_to_downloaded_file)
+            self.scale_to_8bits(
+                file_name,
+                storage_file_path,
+            )
 
-                        except Exception:
-                            logger.warning(f"Failed to get centroid for {folder_name}/{file_name}")
-                            latitude = "NULL"
-                            longitude = "NULL"
+            # Convert to tiles
+            self.convert_to_tiles(
+                file_name,
+                tile_folder_name,
+                storage_file_path,
+            )
+            # Upload tiles to storage
+            self.upload_tiles_to_storage(
+                tile_folder_name,
+                storage_file_path,
+                folder_name,
+            )
 
-                        # Update the database to show success
-                        db.upd_file_upload(
-                            storage_file_path,
-                            status,
-                            message,
-                            latitude,
-                            longitude,
-                        )
+            status = "convertedToTiles"
+            message = "success"
 
-                if count > 0:
-                    return
+            # Try to get lat/lngs
+            latitude = None
+            longitude = None
+            try:
+                full_path_to_downloaded_file = os.path.join(self.tiff_file_dir, file_name)
+                [latitude, longitude] = self.get_centroid(full_path_to_downloaded_file)
 
-        except Exception as e:
-            logger.error("tiff_2_tiles failed", str(e))
-            self.error(storage_file_path, "error", str(e))
+            except Exception:
+                logger.warning(f"Failed to get centroid for {folder_name}/{file_name}")
+                latitude = "NULL"
+                longitude = "NULL"
+
+            # Update the database to show success
+            db.upd_file_upload(
+                storage_file_path,
+                status,
+                message,
+                latitude,
+                longitude,
+            )
+        finally:
+            # Free local disk/memory before the next file
+            self.cleanup_local_files(file_name, tile_folder_name)
+
+    def cleanup_local_files(self, file_name, tile_folder_name):
+        """
+        Remove the downloaded tiff, the 8-bit VRT and the generated tileset so
+        scratch space doesn't accumulate while processing files back to back
+        """
+        for path in (
+            os.path.join(self.tiff_file_dir, file_name),
+            os.path.join(self.warp_file_dir, file_name),
+            os.path.join(self.tile_file_dir, tile_folder_name),
+        ):
+            try:
+                if os.path.isdir(path):
+                    shutil.rmtree(path)
+                elif os.path.exists(path):
+                    os.remove(path)
+            except OSError:
+                logger.warning(f"Failed to remove {path}")
 
     def error(self, storage_file_path, status, message):
         db.upd_file_upload(storage_file_path, status, message)
@@ -200,10 +238,17 @@ class Tif2Tiles:
             input_tif_file = os.path.join(self.tiff_file_dir, file_name)
             output_tif_file = os.path.join(self.warp_file_dir, file_name)
 
-            gdalwarp_cmd = (
-                "gdal_translate -of VRT -ot Byte -scale " + input_tif_file + " " + output_tif_file
-            )
-            os.system(gdalwarp_cmd)
+            cmd = [
+                "gdal_translate",
+                "-of",
+                "VRT",
+                "-ot",
+                "Byte",
+                "-scale",
+                input_tif_file,
+                output_tif_file,
+            ]
+            subprocess.run(cmd, check=True)
         except Exception as e:
             logger.exception(f"Failed generate 8-bit VRT for geotiff {str(e)}")
             self.error(storage_file_path, "scale_to_8bits", str(e))
@@ -215,13 +260,15 @@ class Tif2Tiles:
             tif_file_name = os.path.join(self.warp_file_dir, file_name)
             output_tileset_folder_path = os.path.join(self.tile_file_dir, tile_folder_name)
 
-            cmd = (
-                "gdal2tiles.py --zoom 10-16 --xyz  "
-                + tif_file_name
-                + " "
-                + output_tileset_folder_path
-            )
-            os.system(cmd)
+            cmd = [
+                "gdal2tiles.py",
+                f"--zoom={self.min_zoom}-{self.max_zoom}",
+                "--xyz",
+                f"--processes={os.cpu_count() or 1}",
+                tif_file_name,
+                output_tileset_folder_path,
+            ]
+            subprocess.run(cmd, check=True)
         except Exception as e:
             logger.exception(f"Failed to convert geotiff to raster tiles {(str(e))}")
             self.error(storage_file_path, "convert_to_tiles", str(e))
