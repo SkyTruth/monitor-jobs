@@ -183,7 +183,7 @@ jobs:
       memory: "32Gi"
       env_vars: "TILE_MAX_ZOOM=21"
 
-  deploy-tiff-2-tiler:
+  deploy-tiff-2-tiles-scheduler:
     needs: deploy-tiff-2-tiles
     uses: ./.github/workflows/deploy-scheduler.yaml
     with:

@@ -10,7 +10,7 @@ substitutions:
   _IMAGE_NAME: jobs
   _TAG: latest
   _TIMEOUT: 1800s
-  _DB_INSTANCE: alerts12pg-clone
+  _DB_INSTANCE: alerts12pg
   _ENV_VARS: ""  # semicolon-separated KEY=VALUE pairs
 
 options:
