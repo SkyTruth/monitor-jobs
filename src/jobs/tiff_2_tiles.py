@@ -120,6 +120,20 @@ class Tif2Tiles:
             if not page_token:
                 return items
 
+    def find_tile_path_collisions(self, candidates):
+        """
+        Map each GCS tile prefix to the Drive files that would upload there,
+        keeping only prefixes claimed by more than one file. Two files land on
+        the same prefix when their names differ only by extension (SITE.tif vs
+        SITE.tiff) or are exact duplicates, which Drive allows; uploading both
+        would silently mix two tilesets together
+        """
+        by_tile_path = {}
+        for _, file_name, folder_name in candidates:
+            tile_folder_name = os.path.splitext(file_name)[0]
+            by_tile_path.setdefault((folder_name, tile_folder_name), []).append(file_name)
+        return {key: names for key, names in by_tile_path.items() if len(names) > 1}
+
     def main(self):
         items = self.list_drive_files()
 
@@ -132,8 +146,7 @@ class Tif2Tiles:
             if item_parents == [self.drive_id] and not folders.get(item["id"]):
                 folders[item["id"]] = item["name"]
 
-        processed = 0
-        failed = 0
+        candidates = []
         for item in items:
             item_parent = item.get("parents", [None])[0]
             folder_name = folders.get(item_parent)
@@ -144,13 +157,41 @@ class Tif2Tiles:
             if not file_name.upper().endswith(".TIF") and not file_name.upper().endswith(".TIFF"):
                 continue
 
+            candidates.append((item["id"], file_name, folder_name))
+
+        collisions = self.find_tile_path_collisions(candidates)
+
+        processed = 0
+        failed = 0
+        for file_id, file_name, folder_name in candidates:
             storage_file_path = folder_name + "/" + file_name
+            tile_folder_name = os.path.splitext(file_name)[0]
+
+            # Bad names fail on every run, before the DB check below can mark
+            # them as seen and silence them, until they are renamed in Drive
+            if "/" in file_name or "/" in folder_name:
+                failed += 1
+                logger.error(
+                    f"Failed to create tiles for {storage_file_path}: name cannot contain '/'"
+                )
+                continue
+
+            colliding = collisions.get((folder_name, tile_folder_name))
+            if colliding:
+                failed += 1
+                logger.error(
+                    f"Failed to create tiles for {storage_file_path}: "
+                    f"{colliding} would share the tile folder '{tile_folder_name}'"
+                )
+                continue
 
             if db.get_file_upload(storage_file_path) is not None:
                 continue
 
             try:
-                self.process_file(item["id"], file_name, folder_name, storage_file_path)
+                self.process_file(
+                    file_id, file_name, folder_name, storage_file_path, tile_folder_name
+                )
                 processed += 1
             except Exception as e:
                 failed += 1
@@ -159,7 +200,10 @@ class Tif2Tiles:
 
         logger.info(f"tiff_2_tiles finished: {processed} processed, {failed} failed")
 
-    def process_file(self, file_id, file_name, folder_name, storage_file_path):
+        if failed:
+            raise RuntimeError(f"{failed} of {processed + failed} files failed to process")
+
+    def process_file(self, file_id, file_name, folder_name, storage_file_path, tile_folder_name):
         status = "new"
         message = "new"
         email = "monitor-jobs"
@@ -176,8 +220,6 @@ class Tif2Tiles:
             latitude=None,
             longitude=None,
         )
-
-        tile_folder_name = file_name[: file_name.index(".")]
 
         try:
             self.download_file(file_id, file_name)
@@ -386,8 +428,10 @@ class Tif2Tiles:
             progress = ProgressLogger(f"Uploading {tile_folder_name}", tile_count)
             copied = 0
             for line in process.stdout:
-                if line.startswith("Copying"):
-                    copied += 1
+                # count occurrences, not lines: parallel rsync workers can
+                # interleave two "Copying..." messages onto one line
+                if "Copying" in line:
+                    copied += line.count("Copying")
                     progress.update(copied)
 
             returncode = process.wait()
