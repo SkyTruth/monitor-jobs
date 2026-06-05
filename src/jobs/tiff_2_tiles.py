@@ -5,9 +5,11 @@ import shutil
 import subprocess
 from tempfile import mkdtemp
 
+import httplib2
 import rasterio
 from google.auth import default
 from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaIoBaseDownload
 from rasterio.warp import transform
 
@@ -45,8 +47,7 @@ class ProgressLogger:
 
 class Tif2Tiles:
     def __init__(self):
-        creds, _ = default()
-        self.service = build("drive", "v3", credentials=creds)
+        self.service = self.build_drive_service()
         self.drive_id = "0AFogaYeoFEjDUk9PVA"
 
         self.tiff_file_dir = mkdtemp()
@@ -58,21 +59,43 @@ class Tif2Tiles:
         self.min_zoom = int(os.environ.get("TILE_MIN_ZOOM", "10"))
         self.max_zoom = int(os.environ.get("TILE_MAX_ZOOM", "16"))
 
-    def download_file(self, file_id, file_name):
+    def build_drive_service(self):
+        creds, _ = default()
+        return build("drive", "v3", credentials=creds)
+
+    def download_file(self, file_id, file_name, max_attempts=3):
+        """
+        Download a file from Drive. next_chunk(num_retries=5) retries
+        transient network errors with backoff and resumes mid-file; if a
+        whole attempt fails the Drive connection is rebuilt, since hours of
+        tiling between downloads leaves the original keep-alive socket dead
+        """
         logger.info(f"Downloading {file_name}")
 
         download_path = os.path.join(self.tiff_file_dir, file_name)
-        request = self.service.files().get_media(fileId=file_id, supportsAllDrives=True)
 
-        progress = ProgressLogger(f"Downloading {file_name}", 100)
-        with io.FileIO(download_path, "wb") as handler:
-            downloader = MediaIoBaseDownload(handler, request)
-            done = False
-            while not done:
-                status, done = downloader.next_chunk()
-                progress.update(int(status.progress() * 100))
-
-        handler.close()
+        for attempt in range(1, max_attempts + 1):
+            try:
+                request = self.service.files().get_media(fileId=file_id, supportsAllDrives=True)
+                progress = ProgressLogger(f"Downloading {file_name}", 100)
+                with io.FileIO(download_path, "wb") as handler:
+                    downloader = MediaIoBaseDownload(handler, request)
+                    done = False
+                    while not done:
+                        status, done = downloader.next_chunk(num_retries=5)
+                        progress.update(int(status.progress() * 100))
+                return
+            except (OSError, httplib2.HttpLib2Error, HttpError) as e:
+                # Don't retry client errors like 403/404
+                if isinstance(e, HttpError) and e.resp.status < 500:
+                    raise
+                if attempt == max_attempts:
+                    raise
+                logger.warning(
+                    f"Download attempt {attempt} of {max_attempts} for {file_name} "
+                    f"failed ({e}); rebuilding Drive connection and retrying"
+                )
+                self.service = self.build_drive_service()
 
     def list_drive_files(self):
         """List every file in the shared drive, following pagination."""

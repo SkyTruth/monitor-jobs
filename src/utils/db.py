@@ -247,21 +247,20 @@ def get_next_uploaded_tiff():
 
 def get_file_upload(storage_file_path):
     conn = None
-    file_upload = None
     try:
         conn = psycopg2.connect(config.DB_CONNECTION_STRING)
         cur = conn.cursor()
-        sql = """SELECT * FROM file_uploads WHERE storage_file_path='%s' """ % (storage_file_path)
-        cur.execute(sql)
+        sql = "SELECT * FROM file_uploads WHERE storage_file_path=%s"
+        cur.execute(sql, (storage_file_path,))
         file_upload = cur.fetchone()
         cur.close()
-    except (Exception, psycopg2.DatabaseError) as error:
+        return file_upload
+    except (Exception, psycopg2.DatabaseError):
         logging.exception("Database error in get_file_upload()")
         raise
     finally:
         if conn is not None:
             conn.close()
-        return file_upload
 
 
 def get_next_uploaded_tiff_missing_coords():
@@ -274,13 +273,13 @@ def get_next_uploaded_tiff_missing_coords():
         )
         next_file = cur.fetchone()
         cur.close()
-    except (Exception, psycopg2.DatabaseError) as error:
+        return next_file
+    except (Exception, psycopg2.DatabaseError):
         logging.exception("Database error in get_next_uploaded_tiff_missing_coords()")
         raise
     finally:
         if conn is not None:
             conn.close()
-        return next_file
 
 
 def upd_file_upload(storage_file_path, status, message, latitude=None, longitude=None):
