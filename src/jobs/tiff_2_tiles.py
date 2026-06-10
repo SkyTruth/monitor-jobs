@@ -8,6 +8,7 @@ from tempfile import mkdtemp
 import httplib2
 import rasterio
 from google.auth import default
+from rasterio.enums import ColorInterp
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaIoBaseDownload
@@ -330,16 +331,21 @@ class Tif2Tiles:
             input_tif_file = os.path.join(self.tiff_file_dir, file_name)
             output_tif_file = os.path.join(self.warp_file_dir, file_name)
 
-            cmd = [
-                "gdal_translate",
-                "-of",
-                "VRT",
-                "-ot",
-                "Byte",
-                "-scale",
-                input_tif_file,
-                output_tif_file,
-            ]
+            # -scale stretches each band to 0-255 using that band's own
+            # min/max. An alpha band is typically a constant 255, and
+            # stretching a constant band maps every value to 0, turning the
+            # whole image fully transparent. Scale only the data bands and
+            # pass the alpha band through unchanged
+            with rasterio.open(input_tif_file) as src:
+                band_interps = src.colorinterp
+
+            cmd = ["gdal_translate", "-of", "VRT", "-ot", "Byte"]
+            for band, interp in enumerate(band_interps, start=1):
+                if interp == ColorInterp.alpha:
+                    cmd += [f"-scale_{band}", "0", "255", "0", "255"]
+                else:
+                    cmd += [f"-scale_{band}"]
+            cmd += [input_tif_file, output_tif_file]
             subprocess.run(cmd, check=True)
         except Exception as e:
             logger.exception(f"Failed generate 8-bit VRT for geotiff {str(e)}")
