@@ -178,10 +178,12 @@ jobs:
     with:
       job_name: "tiff-2-tiles"
       job_path: "src.jobs.tiff_2_tiles"
-      timeout: "3600s"
-      memory: "1Gi"
+      timeout: "86400s"  # 24h: processes every new file in one run
+      cpu: "8"
+      memory: "32Gi"
+      env_vars: "TILE_MAX_ZOOM=21"
 
-  deploy-tiff-2-tiler:
+  deploy-tiff-2-tiles-scheduler:
     needs: deploy-tiff-2-tiles
     uses: ./.github/workflows/deploy-scheduler.yaml
     with:

@@ -11,6 +11,7 @@ substitutions:
   _TAG: latest
   _TIMEOUT: 1800s
   _DB_INSTANCE: alerts12pg
+  _ENV_VARS: ""  # semicolon-separated KEY=VALUE pairs
 
 options:
   logging: CLOUD_LOGGING_ONLY
@@ -25,6 +26,13 @@ steps:
         
         IMAGE="us-east1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:${_TAG}"
 
+        # "^;^" tells gcloud to split _ENV_VARS on semicolons instead of commas,
+        # since commas are already taken by the Cloud Build substitution syntax
+        ENV_FLAG=""
+        if [ -n "${_ENV_VARS}" ]; then
+          ENV_FLAG="--set-env-vars=^;^${_ENV_VARS}"
+        fi
+
         if gcloud run jobs describe "${_JOB_NAME}" --region "${_REGION}" >/dev/null 2>&1; then
           echo "Updating job ${_JOB_NAME}"
           gcloud run jobs update "${_JOB_NAME}" \
@@ -35,7 +43,8 @@ steps:
             --memory=${_MEMORY} \
             --command python \
             --args="-m,${_JOB_PATH}" \
-            --set-cloudsql-instances="${PROJECT_ID}:${_REGION}:${_DB_INSTANCE}"
+            --set-cloudsql-instances="${PROJECT_ID}:${_REGION}:${_DB_INSTANCE}" \
+            $$ENV_FLAG
         else
           echo "Creating job ${_JOB_NAME}"
           gcloud run jobs create "${_JOB_NAME}" \
@@ -46,5 +55,6 @@ steps:
             --memory=${_MEMORY} \
             --command python \
             --args="-m,${_JOB_PATH}" \
-            --set-cloudsql-instances="${PROJECT_ID}:${_REGION}:${_DB_INSTANCE}"
+            --set-cloudsql-instances="${PROJECT_ID}:${_REGION}:${_DB_INSTANCE}" \
+            $$ENV_FLAG
         fi
