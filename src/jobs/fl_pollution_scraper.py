@@ -22,11 +22,12 @@ class FlPollution:
     target_url = None
     source_id = 2001
     name = "pollution"
-    now = datetime.now()
-    year = datetime.strftime(now, "%Y")
 
     def main(self, args):
         before_count = self.db.get_feedentry_count(self.source_id)["count"]
+        last_posted_key = self.db.get_max_fl_incident_detail_key(self.source_id)
+        if last_posted_key is None:
+            raise RuntimeError("No existing Florida entries; refusing to post full history")
         download_url = "https://prodenv.dep.state.fl.us/DepPNP/export-incidents"
         file_to_process = "/tmp/export.xls"
         overwrite_downloaded_file = True
@@ -63,14 +64,10 @@ class FlPollution:
                     latitude = incidents.cell(row_idx, 22).value
                     longitude = incidents.cell(row_idx, 23).value
                     Map_Direct_Link = incidents.cell(row_idx, 24).value
-                    if str(SWO_Incident_Number)[0:4] == self.year:
+                    incident_detail_key = int(Map_Direct_Link.split("incidentDetailKey=")[1])
+                    if incident_detail_key > last_posted_key:
                         try:
-                            if (
-                                self.db.getSourceItemIdCount(self.source_id, SWO_Incident_Number)
-                                > 0
-                            ):
-                                pass
-                            elif str(latitude) > "" and str(longitude) > "":
+                            if latitude and longitude:
                                 logging.info(
                                     f"Adding incident {SWO_Incident_Number} - {Incident_Name} at {latitude}, {longitude}"
                                 )
@@ -124,7 +121,7 @@ class FlPollution:
                                     "lat": latitude,
                                     "lng": longitude,
                                     "source_id": self.source_id,
-                                    "source_item_id": SWO_Incident_Number,
+                                    "source_item_id": incident_detail_key,
                                     "kml_url": "",
                                     "incident_datetime": Report_Date_Time,
                                     "status": "published",
@@ -134,8 +131,7 @@ class FlPollution:
                                 response = requests.post(url, data=post_fields)
                                 logging.info(f"Post to feedentry status: {response.content}")
                         except Exception as e:
-                            logging.error(f"Error processing incident: {e}")
-                            raise
+                            logging.error(f"Error processing incident {incident_detail_key}: {e}")
 
         after_count = self.db.get_feedentry_count(self.source_id)["count"]
         logging.info(f"before: {before_count}")

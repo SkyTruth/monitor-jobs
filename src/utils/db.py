@@ -1018,12 +1018,16 @@ class NrcDatabase:
         c.execute(sql, (api,))
         return c.fetchone()
 
-    def getSourceItemIdCount(self, source_id, source_item_id):
-        c = self.db.cursor(cursor_factory=DictCursor)
-        sql = "SELECT * FROM feedentry WHERE source_item_id=%s AND source_id=%s"
-        c.execute(sql, (source_item_id, source_id))
-        n = c.rowcount
-        return n
+    def get_max_fl_incident_detail_key(self, source_id):
+        c = self.db.cursor()
+        # Get the key from the link, since source_item_id was not always represented
+        # as the incidentDetailKey
+        sql = (
+            r"SELECT MAX(substring(link from 'incidentDetailKey=(\d+)')::int) "
+            "FROM feedentry WHERE source_id=%s"
+        )
+        c.execute(sql, (source_id,))
+        return c.fetchone()[0]
 
     def seeIfFeedentryExists(self, id):
         c = self.db.cursor(cursor_factory=DictCursor)
