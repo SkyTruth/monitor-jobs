@@ -1020,6 +1020,8 @@ class NrcDatabase:
 
     def get_max_fl_incident_detail_key(self, source_id):
         c = self.db.cursor()
+        # Get the key from the link, since source_item_id was not always represented
+        # as the incidentDetailKey
         sql = (
             r"SELECT MAX(substring(link from 'incidentDetailKey=(\d+)')::int) "
             "FROM feedentry WHERE source_id=%s"
